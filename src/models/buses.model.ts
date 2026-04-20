@@ -1,17 +1,16 @@
-// credentials-model.ts - A mongoose model
-//
-// See http://mongoosejs.com/docs/models.html
-// for more of what you can do here.
 import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'credentials';
+  const modelName = 'buses';
   const mongooseClient: Mongoose = app.get('mongooseClient');
-  const schema = new mongooseClient.Schema({
+  const schema = new mongooseClient.Schema({  
+    BusId: { type: mongooseClient.Schema.Types.ObjectId },
+    CompanyId: { type: mongooseClient.Schema.Types.ObjectId, ref: 'companies' },
+    DriverId: { type: mongooseClient.Schema.Types.ObjectId, ref: 'drivers' },
+    Status: { type: String, enum: ['active', 'inactive'] },
+    Capacity: { type: Number },  
   
-    email: { type: String, unique: true, lowercase: true },
-    password: { type: String },
   }, {
     timestamps: true
   });

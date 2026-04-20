@@ -1,17 +1,27 @@
-// credentials-model.ts - A mongoose model
-//
-// See http://mongoosejs.com/docs/models.html
-// for more of what you can do here.
+
 import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'credentials';
+  const modelName = 'ContactAndAddress';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const schema = new mongooseClient.Schema({
   
-    email: { type: String, unique: true, lowercase: true },
-    password: { type: String },
+    userId: {
+      type: mongooseClient.Schema.Types.ObjectId,
+      ref: 'users',
+      required: true
+    },
+    PhoneNumber: { type: String, unique: true },
+    EmergencyContact: { type: String },
+    EmergencyContactName: { type: String },
+    City: { type: String },
+    Country: { type: String }
+
+
+
+  
+  
   }, {
     timestamps: true
   });
