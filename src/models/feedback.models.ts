@@ -3,30 +3,21 @@ import {Model,Mongoose} from 'mongoose';
 
 export default function(app:Application):Model<any>{
 
-    const modelName = 'BookedSeats';
+
+    const modelName = 'feedback';
     const mongooseClient : Mongoose = app.get("mongooseClient");
     const schema = new mongooseClient.Schema({
-        trip: {
+        driver:{
             type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'trips'
-        },
-        user: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'users'
-        },
-        seats: [{
-            type: String
-        }],
-        status: {
-            type: String,
-            enum: ['Booked', 'Pending', 'PendingPayment', 'Driver',"SeatWithIssue"]
-        },
-        phoneNumber: {
-            type: String
+            ref:'drivers'
         }
-
-       
-    },{timestamps:true});
+        ,user:{
+            type: mongooseClient.Schema.Types.ObjectId,
+            ref:'users'
+        },
+        rating:{type:Number},
+        comment:{type:String}
+    },{});
 
     if(mongooseClient.modelNames().includes(modelName)){
         mongooseClient.deleteModel(modelName)

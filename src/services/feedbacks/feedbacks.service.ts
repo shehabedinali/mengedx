@@ -1,30 +1,29 @@
-// Initializes the `buses` service on path `/buses`
+// Initializes the `feedbacks` service on path `/feedbacks`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { Buses } from './buses.class';
-import hooks from './buses.hooks';
-import { Model } from 'mongoose';
+import { Feedbacks } from './feedbacks.class';
+import hooks from './feedbacks.hooks';
 
-import CreateModel from '../../models/buses.model';
+import CreateModel from '../../models/feedback.models';
 
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    'buses': Buses & ServiceAddons<any>;
+    'feedbacks': Feedbacks & ServiceAddons<any>;
   }
 }
 
 export default function (app: Application): void {
   const options = {
-    Model:CreateModel(app),
+    Model: CreateModel(app),
     paginate: app.get('paginate')
   };
 
   // Initialize our service with any options it requires
-  app.use('/buses', new Buses(options, app));
+  app.use('/feedbacks', new Feedbacks(options, app));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('buses');
+  const service = app.service('feedbacks');
 
   service.hooks(hooks);
 }

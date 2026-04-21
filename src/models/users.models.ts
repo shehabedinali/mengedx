@@ -6,16 +6,16 @@ export default function(app:Application):Model<any>{
     const mongooseClient : Mongoose = app.get("mongooseClient");
     const schema = new mongooseClient.Schema({
             //realations
-            companyId: {
+            company: {
                 type:mongooseClient.Schema.Types.ObjectId,
                 ref:"companies"
             },
             //fileds
             firstName :{ type:String },
             lastName :{ type:String },              
-            Status :{ type:String, enum:['active', 'inactive'] },
-            StartedAt: { type: Date },
-            UserRole: { type: String, enum:['admin', 'user'] }
+            status :{ type:String, enum:['active', 'inactive'] },
+            startedAt: { type: Date },
+            userRole: { type: String, enum:['Admin', 'User','Ticketer',"Manager"] }
 
     },{
         timestamps:true

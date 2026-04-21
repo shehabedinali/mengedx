@@ -3,8 +3,13 @@ logs
 *.log
 
 
+#compiled source
+public/admin
+
 # env files
-.env
+beta.env
+prod.env
+dev.env
 
 # Runtime data
 pids

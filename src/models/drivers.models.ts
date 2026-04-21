@@ -6,18 +6,18 @@ export default function(app:Application):Model<any>{
 
     const mongooseClient: Mongoose = app.get('mongooseClient');
     const schema = new mongooseClient.Schema({
-        dirverId:{
+        dirver:{
             type: mongooseClient.Schema.Types.ObjectId,
             ref:'users',
             required:true,
             unique:true
         },
-        LicenceNumber:{
+        licenceNumber:{
             type:String,
             require:true,
             unique:true
         },
-        LicenceExpiry:{
+        licenceExpiry:{
             type:Date,
         }
 

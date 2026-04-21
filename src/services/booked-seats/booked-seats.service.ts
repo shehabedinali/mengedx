@@ -4,7 +4,9 @@ import { Application } from '../../declarations';
 import { BookedSeats } from './booked-seats.class';
 import hooks from './booked-seats.hooks';
 
+
 import CreateModel from '../../models/bookedSeats.models';
+
 
 // Add this service to the service type index
 declare module '../../declarations' {

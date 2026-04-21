@@ -26,7 +26,7 @@
   "scripts": {
     "test": "npm run lint && npm run compile && npm run mocha",
     "lint": "eslint src/. test/. --config .eslintrc.json --ext .ts --fix",
-    "dev": "ts-node-dev --no-notify src/",
+    "dev": "ts-node-dev --env-file dev.env --no-notify src/",
     "start": "node lib/",
     "mocha": "mocha --require ts-node/register --require source-map-support/register \"test/**/*.ts\" --recursive --exit",
     "compile": "shx rm -rf lib/ && tsc",
@@ -53,7 +53,6 @@
     "@feathersjs/transport-commons": "^5.0.44",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
     "feathers-mongoose": "^8.5.1",
     "helmet": "^5.1.1",
     "mongodb-core": "^3.2.7",

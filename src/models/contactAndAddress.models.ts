@@ -7,16 +7,16 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const schema = new mongooseClient.Schema({
   
-    userId: {
+    user: {
       type: mongooseClient.Schema.Types.ObjectId,
       ref: 'users',
       required: true
     },
-    PhoneNumber: { type: String, unique: true },
-    EmergencyContact: { type: String },
-    EmergencyContactName: { type: String },
-    City: { type: String },
-    Country: { type: String }
+    phoneNumber: { type: String, unique: true },
+    emergencyContact: { type: String },
+    emergencyContactName: { type: String },
+    city: { type: String },
+    country: { type: String }
 
 
 

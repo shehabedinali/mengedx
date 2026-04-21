@@ -6,20 +6,17 @@ export default function(app:Application):Model<any>{
     const modelName = 'trips';
     const mongooseClient : Mongoose = app.get("mongooseClient");
     const schema = new mongooseClient.Schema({
-        CompanyId:{
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref:'companies'
-        },
-        busId:{
+        bus:{
             type: mongooseClient.Schema.Types.ObjectId,
             ref:'buses'
         },
-        routeId:{
+        route:{
             type: mongooseClient.Schema.Types.ObjectId,
             ref:'routes'
         },
+        departureTime:{type:Date},
         tripDate:{type:Date},
-        TripStatus:{type:String, enum:[]},//statusses to be added
+        tripStatus:{type:String, enum:['Completed','Cancelled','Inprogress']},//statusses to be added
     },{timestamps:true});
 
     if(mongooseClient.modelNames().includes(modelName)){

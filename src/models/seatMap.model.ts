@@ -3,28 +3,21 @@ import {Model,Mongoose} from 'mongoose';
 
 export default function(app:Application):Model<any>{
 
-    const modelName = 'BookedSeats';
+    const modelName = 'seatmaps';
     const mongooseClient : Mongoose = app.get("mongooseClient");
     const schema = new mongooseClient.Schema({
-        trip: {
+        bus: {
             type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'trips'
+            ref:'buses'
         },
-        user: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'users'
-        },
-        seats: [{
-            type: String
-        }],
-        status: {
-            type: String,
-            enum: ['Booked', 'Pending', 'PendingPayment', 'Driver',"SeatWithIssue"]
-        },
-        phoneNumber: {
-            type: String
-        }
+        SeatAvailability:{
+            type:Array.of({
+                seatTage:{type :String},
+                numberOfSeatsAssigned:{type:Number},
+            }),
 
+        }
+       
        
     },{timestamps:true});
 
