@@ -4,6 +4,7 @@ import compress from 'compression';
 import helmet from 'helmet';
 import cors from 'cors';
 
+
 import feathers from '@feathersjs/feathers';
 import configuration from '@feathersjs/configuration';
 import express from '@feathersjs/express';
@@ -20,6 +21,7 @@ import { HookContext as FeathersHookContext } from '@feathersjs/feathers';
 import authentication from './authentication';
 import mongoose from './mongoose';
 // Don't remove this comment. It's needed to format import lines nicely.
+
 
 const app: Application = express(feathers());
 export type HookContext<T = any> = { app: Application } & FeathersHookContext<T>;

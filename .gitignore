@@ -2,6 +2,15 @@
 logs
 *.log
 
+
+#compiled source
+public/admin
+
+# env files
+beta.env
+prod.env
+dev.env
+
 # Runtime data
 pids
 *.pid
