@@ -1,4 +1,4 @@
-// seatmap-model.ts - A mongoose model
+// feadback-model.ts - A mongoose model
 //
 // See http://mongoosejs.com/docs/models.html
 // for more of what you can do here.
@@ -6,21 +6,20 @@ import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'seatmap';
+  const modelName = 'feadback';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     bus: {
+    driver:{
             type: mongooseClient.Schema.Types.ObjectId,
-            ref:'buses'
-        },
-     SeatAvailability:{
-            type:Array.of({
-                seatTage:{type :String},
-                numberOfSeatsAssigned:{type:Number},
-            }),
-
+            ref:'drivers'
         }
+        ,user:{
+            type: mongooseClient.Schema.Types.ObjectId,
+            ref:'users'
+        },
+        rating:{type:Number},
+        comment:{type:String}
   }, {
     timestamps: true
   });

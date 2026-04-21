@@ -1,29 +1,28 @@
-// Initializes the `exeptionalseatmap` service on path `/exeptionalseatmap`
+// Initializes the `feadback` service on path `/feadback`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { Exeptionalseatmap } from './exeptionalseatmap.class';
-import hooks from './exeptionalseatmap.hooks';
-
-import CreateModel from '../../models/exeptionalSeat.models';
+import { Feadback } from './feadback.class';
+import createModel from '../../models/feadback.model';
+import hooks from './feadback.hooks';
 
 // Add this service to the service type index
 declare module '../../declarations' {
   interface ServiceTypes {
-    'exeptionalseatmap': Exeptionalseatmap & ServiceAddons<any>;
+    'feadback': Feadback & ServiceAddons<any>;
   }
 }
 
 export default function (app: Application): void {
   const options = {
-    Model:CreateModel(app),
+    Model: createModel(app),
     paginate: app.get('paginate')
   };
 
   // Initialize our service with any options it requires
-  app.use('/exeptionalseatmap', new Exeptionalseatmap(options, app));
+  app.use('/feadback', new Feadback(options, app));
 
   // Get our initialized service so that we can register hooks
-  const service = app.service('exeptionalseatmap');
+  const service = app.service('feadback');
 
   service.hooks(hooks);
 }

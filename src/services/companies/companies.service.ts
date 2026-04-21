@@ -1,10 +1,9 @@
-// Initializes the `Companies ` service on path `/companies`
+// Initializes the `companies` service on path `/companies`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { Companies } from './companies.class';
+import createModel from '../../models/companies.model';
 import hooks from './companies.hooks';
-import createModel from "../../models/companies.models";
-
 
 // Add this service to the service type index
 declare module '../../declarations' {
@@ -15,8 +14,8 @@ declare module '../../declarations' {
 
 export default function (app: Application): void {
   const options = {
-    paginate: app.get('paginate'),
-    Model: createModel(app)
+    Model: createModel(app),
+    paginate: app.get('paginate')
   };
 
   // Initialize our service with any options it requires

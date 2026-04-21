@@ -2,9 +2,8 @@
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { Drivers } from './drivers.class';
+import createModel from '../../models/drivers.model';
 import hooks from './drivers.hooks';
-import createModel from '../../models/drivers.models';
-import { Model } from 'mongoose';
 
 // Add this service to the service type index
 declare module '../../declarations' {
@@ -15,7 +14,7 @@ declare module '../../declarations' {
 
 export default function (app: Application): void {
   const options = {
-    Model :createModel(app),
+    Model: createModel(app),
     paginate: app.get('paginate')
   };
 
