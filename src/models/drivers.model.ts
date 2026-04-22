@@ -1,27 +1,29 @@
-
+// drivers-model.ts - A mongoose model
+//
+// See http://mongoosejs.com/docs/models.html
+// for more of what you can do here.
 import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'ContactAndAddress';
+  const modelName = 'drivers';
   const mongooseClient: Mongoose = app.get('mongooseClient');
-  const schema = new mongooseClient.Schema({
-  
-    user: {
-      type: mongooseClient.Schema.Types.ObjectId,
-      ref: 'users',
-      required: true
-    },
-    phoneNumber: { type: String, unique: true },
-    emergencyContact: { type: String },
-    emergencyContactName: { type: String },
-    city: { type: String },
-    country: { type: String }
-
-
-
-  
-  
+  const { Schema } = mongooseClient;
+  const schema = new Schema({
+    dirver:{
+            type: mongooseClient.Schema.Types.ObjectId,
+            ref:'users',
+            // required:true,
+            unique:true
+        },
+        licenceNumber:{
+            type:String,
+            // require:true,
+            unique:true
+        },
+        licenceExpiry:{
+            type:Date,
+        }
   }, {
     timestamps: true
   });

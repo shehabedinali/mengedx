@@ -1,16 +1,21 @@
+// buses-model.ts - A mongoose model
+//
+// See http://mongoosejs.com/docs/models.html
+// for more of what you can do here.
 import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
   const modelName = 'buses';
   const mongooseClient: Mongoose = app.get('mongooseClient');
-  const schema = new mongooseClient.Schema({  
-    bus: { type: mongooseClient.Schema.Types.ObjectId },
+  const { Schema } = mongooseClient;
+  const schema = new Schema({
+    assignedby:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
+    assignedDate: { type: Date },
     company: { type: mongooseClient.Schema.Types.ObjectId, ref: 'companies' },
     driver: { type: mongooseClient.Schema.Types.ObjectId, ref: 'drivers' },
-    status: { type: String, enum: ['Active', 'Inactive'] },
+    status: { type: String, enum: ['Active', 'Inactive'] ,default:'Active'},
     capacity: { type: Number },  
-  
   }, {
     timestamps: true
   });

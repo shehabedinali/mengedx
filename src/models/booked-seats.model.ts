@@ -1,4 +1,4 @@
-// seatmap-model.ts - A mongoose model
+// booked-seats-model.ts - A mongoose model
 //
 // See http://mongoosejs.com/docs/models.html
 // for more of what you can do here.
@@ -6,21 +6,29 @@ import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'seatmap';
+  const modelName = 'bookedSeats';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     bus: {
+     trip: {
             type: mongooseClient.Schema.Types.ObjectId,
-            ref:'buses'
+            ref: 'trips'
         },
-     SeatAvailability:{
-            type:Array.of({
-                seatTage:{type :String},
-                numberOfSeatsAssigned:{type:Number},
-            }),
-
+        user: {
+            type: mongooseClient.Schema.Types.ObjectId,
+            ref: 'users'
+        },
+        seats: [{
+            type: String
+        }],
+        status: {
+            type: String,
+            enum: ['Booked', 'Pending', 'PendingPayment', 'Driver',"SeatWithIssue"]
+        },
+        phoneNumber: {
+            type: String
         }
+
   }, {
     timestamps: true
   });

@@ -1,12 +1,9 @@
-// Initializes the `bookedSeats` service on path `/booked-seats`
+// Initializes the `booked-seats` service on path `/booked-seats`
 import { ServiceAddons } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
 import { BookedSeats } from './booked-seats.class';
+import createModel from '../../models/booked-seats.model';
 import hooks from './booked-seats.hooks';
-
-
-import CreateModel from '../../models/bookedSeats.models';
-
 
 // Add this service to the service type index
 declare module '../../declarations' {
@@ -17,7 +14,7 @@ declare module '../../declarations' {
 
 export default function (app: Application): void {
   const options = {
-    Model:CreateModel(app),
+    Model: createModel(app),
     paginate: app.get('paginate')
   };
 

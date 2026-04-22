@@ -1,4 +1,4 @@
-// seatmap-model.ts - A mongoose model
+// exeptionalSeat-model.ts - A mongoose model
 //
 // See http://mongoosejs.com/docs/models.html
 // for more of what you can do here.
@@ -6,21 +6,21 @@ import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'seatmap';
+  const modelName = 'exeptionalSeat';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     bus: {
+    bus: {
             type: mongooseClient.Schema.Types.ObjectId,
             ref:'buses'
         },
-     SeatAvailability:{
+        SeatWithExeption:{
             type:Array.of({
                 seatTage:{type :String},
-                numberOfSeatsAssigned:{type:Number},
+                exeptionSeatsOrder:{type:Number},
             }),
-
         }
+       
   }, {
     timestamps: true
   });

@@ -29,5 +29,5 @@
       "passwordField": "password"
     }
   },
-  "mongodb": "mongodb://localhost:27017/mengedx"
+  "mongodb": "MONGODB_URI"
 }

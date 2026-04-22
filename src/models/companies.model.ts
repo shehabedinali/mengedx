@@ -1,4 +1,4 @@
-// seatmap-model.ts - A mongoose model
+// companies-model.ts - A mongoose model
 //
 // See http://mongoosejs.com/docs/models.html
 // for more of what you can do here.
@@ -6,20 +6,14 @@ import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'seatmap';
+  const modelName = 'companies';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     bus: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref:'buses'
-        },
-     SeatAvailability:{
-            type:Array.of({
-                seatTage:{type :String},
-                numberOfSeatsAssigned:{type:Number},
-            }),
-
+     companyName:{
+            type: String,
+            // required: true,
+            unique: true
         }
   }, {
     timestamps: true
