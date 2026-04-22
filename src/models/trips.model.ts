@@ -10,7 +10,7 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-    bus:{
+        bus:{
             type: mongooseClient.Schema.Types.ObjectId,
             ref:'buses'
         },
@@ -22,6 +22,8 @@ export default function (app: Application): Model<any> {
         departureTime:{type:Date},
         tripDate:{type:Date},
         tripStatus:{type:String, enum:['Completed','Cancelled','Inprogress']},
+        tripScheduledBy:{type: mongooseClient.Schema.Types.ObjectId, ref:'users'},
+        tripScheduledDate:{type:Date}
   }, {
     timestamps: true
   });
