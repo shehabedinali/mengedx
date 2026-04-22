@@ -11,6 +11,9 @@ import seatmap from './seatmap/seatmap.service';
 import contactAndAddress from './contact-and-address/contact-and-address.service';
 import exeptionalSeat from './exeptional-seat/exeptional-seat.service';
 import feadback from './feadback/feadback.service';
+import assignDrivers from './assign-drivers/assign-drivers.service';
+
+
 
 // Don't remove this comment. It's needed to format import lines nicely.
 
@@ -27,5 +30,6 @@ export default function (app: Application): void {
   app.configure(contactAndAddress);
   app.configure(exeptionalSeat);
   app.configure(feadback);
-
+  app.configure(assignDrivers);
+  
 }

@@ -6,4 +6,5 @@ export class Buses extends Service {
   constructor(options: Partial<MongooseServiceOptions>, app: Application) {
     super(options);
   }
+
 }

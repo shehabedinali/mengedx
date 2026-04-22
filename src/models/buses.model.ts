@@ -10,6 +10,8 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
+    assignedby:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
+    assignedDate: { type: Date },
     company: { type: mongooseClient.Schema.Types.ObjectId, ref: 'companies' },
     driver: { type: mongooseClient.Schema.Types.ObjectId, ref: 'drivers' },
     status: { type: String, enum: ['Active', 'Inactive'] ,default:'Active'},
