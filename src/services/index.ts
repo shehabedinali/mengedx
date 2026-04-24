@@ -15,6 +15,9 @@ import assignDrivers from './assign-drivers/assign-drivers.service';
 import assignseat from './assignseat/assignseat.service';
 
 
+import scheduletrip from './scheduletrip/scheduletrip.service';
+
+
 // Don't remove this comment. It's needed to format import lines nicely.
 
 export default function (app: Application): void {
@@ -32,4 +35,5 @@ export default function (app: Application): void {
   app.configure(feadback);
   app.configure(assignDrivers);
   app.configure(assignseat);
+  app.configure(scheduletrip);
 }
