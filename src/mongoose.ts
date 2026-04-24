@@ -3,7 +3,7 @@ import { Application } from './declarations';
 import logger from './logger';
 
 export default function (app: Application): void {
-  console.log(app.get("mongodb"))
+
   mongoose.connect(
    process.env.MONGODB_URI || app.get('mongodb')
   ).catch(err => {

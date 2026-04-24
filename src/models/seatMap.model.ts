@@ -9,12 +9,11 @@ export default function (app: Application): Model<any> {
   const modelName = 'seatmap';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
-  const schema = new Schema({
-     bus: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref:'buses'
-        },
-     SeatAvailability:{
+  const schema = new Schema(
+    {
+     busName : { type: String },
+     busModel:{type:String},
+     seatAvailability:{
             type:Array.of({
                 seatTage:{type :String},
                 numberOfSeatsAssigned:{type:Number},

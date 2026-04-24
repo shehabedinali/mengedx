@@ -8,10 +8,11 @@ export function beforePatchValidationAssignDrivers(options:any={}) {
         if(!data.driver){
             throw new BadRequest(`Path assignDriver driver not found`)
         }
-        data.assignedby = params?.credential?._id.toString() || '69e7725d43ce430c31638e72';
-        data.assignedDate = new Date();
-        data.driver = data?.driver;
+        data.driverAssignedby = params?.credential?._id.toString() || null; 
+        data.driverAssignedDate = new Date();
+    
 
         return context
     }
 }
+

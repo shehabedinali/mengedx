@@ -12,7 +12,7 @@ import contactAndAddress from './contact-and-address/contact-and-address.service
 import exeptionalSeat from './exeptional-seat/exeptional-seat.service';
 import feadback from './feadback/feadback.service';
 import assignDrivers from './assign-drivers/assign-drivers.service';
-
+import assignseat from './assignseat/assignseat.service';
 
 
 // Don't remove this comment. It's needed to format import lines nicely.
@@ -31,5 +31,5 @@ export default function (app: Application): void {
   app.configure(exeptionalSeat);
   app.configure(feadback);
   app.configure(assignDrivers);
-  
+  app.configure(assignseat);
 }

@@ -10,24 +10,29 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
+     assignedby:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
+     assignedDate: { type: Date },
      trip: {
             type: mongooseClient.Schema.Types.ObjectId,
             ref: 'trips'
         },
-        user: {
+    user: {
             type: mongooseClient.Schema.Types.ObjectId,
             ref: 'users'
         },
-        seats: [{
+    seats: [{
             type: String
         }],
-        status: {
+    status: {
             type: String,
             enum: ['Booked', 'Pending', 'PendingPayment', 'Driver',"SeatWithIssue"]
         },
-        phoneNumber: {
+    phoneNumber: {
             type: String
-        }
+        },
+    emergencyContact: {
+            type: String
+        },
 
   }, {
     timestamps: true

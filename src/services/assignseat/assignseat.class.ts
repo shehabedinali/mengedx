@@ -1,23 +1,18 @@
 import { Id, NullableId, Paginated, Params, ServiceMethods } from '@feathersjs/feathers';
 import { Application } from '../../declarations';
-import { mongo } from 'mongoose';
 import { BadRequest } from '@feathersjs/errors';
 
-interface Data {
-  
-}
+interface Data {}
 
-
-//interface to define the data that will be passed to the patch method when assigning a driver to a bus. It will contain the driver id that will be assigned to the bus.
-interface AssignDriverData {
-  driver : string;
-  driverAssignedby:string;
-  driverAssignedDate:Date;
+interface PatchData{
+     seatmapAssignedBy: string;
+     seatmapAssignedDate: Date;
+     seatmap:string;
 }
 
 interface ServiceOptions {}
 
-export class AssignDrivers implements ServiceMethods<Data> {
+export class Assignseat implements ServiceMethods<Data> {
   app: Application;
   options: ServiceOptions;
 
@@ -40,49 +35,40 @@ export class AssignDrivers implements ServiceMethods<Data> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async create (data: Data, params?: Params): Promise<Data> {
-    if (Array.isArray(data)) {
-      return Promise.all(data.map(current => this.create(current, params)));
-    }
-
-    return data;
+     return {}
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async update (id: NullableId, data: Data, params?: Params): Promise<Data> {
+    
+
+   
     return data;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async patch (id: NullableId, data: AssignDriverData, params?: Params): Promise<Data> {
-    if (!id) {
-      throw new BadRequest(`Path assignDriver userId not found`);
+  async patch (id: NullableId, data: PatchData, params?: Params): Promise<Data> {
+    if( !id ){
+        throw new Error('id is required for patching seatmap')
     }
-   
-    //check if the bus exists
-    await this.app.service('buses').get(id);
-    
-    
-    //check it any bus do have the driver with the given driverid
     const result = await this.app.service('buses').find({
-      query: {
-        driver: data.driver,
-        $limit: 1,
-        $select: ['driverAssignedDate']
-      }
-    }) as Paginated<any>;
+          query: {
+            _id: id,
+            $limit: 1,
+            $select: ['seatmapAssignedBy']
+          }
+        }) as Paginated<any>;
+        
+        if(result?.data?.[0]?.seatmapAssignedBy){
+          throw new BadRequest(`The seatmap is already assigned to a bus`);
+        }
+    const seatmap = this.app.service('buses').patch(id, data);
+    return seatmap;
     
-    if(result?.data?.[0]?.driverAssignedDate){
-      throw new BadRequest(`The driver is already assigned to a bus`);
-    }
-
-    const assignedBus = await this.app.service('buses').patch(id, data);
-    return assignedBus;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async remove (id: NullableId, params?: Params): Promise<Data> {
-
-   
     return { id };
   }
 }
