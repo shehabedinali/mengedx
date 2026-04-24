@@ -10,8 +10,7 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     assignedby:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
-     assignedDate: { type: Date },
+     bookedBy:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
      trip: {
             type: mongooseClient.Schema.Types.ObjectId,
             ref: 'trips'
