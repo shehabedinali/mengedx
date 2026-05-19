@@ -913,9 +913,7 @@ export default function BusDetail() {
   const { data: buses, loading } = useAppSelector(s => s.buses);
   const { data: drivers }        = useAppSelector(s => s.drivers);
   const { data: seatMaps }       = useAppSelector((s: any) => s.seatMaps);
-  const user = useAppSelector(s => s.auth.user);
-  const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
-  const companyFilter = isSuperAdmin ? undefined : user?.company;
+
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirm] = useState(false);
@@ -926,7 +924,6 @@ export default function BusDetail() {
   const [savingExc, setSavingExc] = useState(false);
   const [excSaved, setExcSaved]   = useState(false);
   const [driverSaving, setDriverSaving] = useState(false);
-  const [driverSaved, setDriverSaved]   = useState(false);
   const [seatMapSaving, setSeatMapSaving] = useState(false);
   const [seatMapSaved, setSeatMapSaved]   = useState(false);
 
@@ -966,10 +963,9 @@ export default function BusDetail() {
   };
 
   const handleAssign = async (driverId: string | null) => {
-    setDriverSaving(true); setDriverSaved(false);
+    setDriverSaving(true);
     await dispatch(assignDriverAsync({ busId: id!, driverId }));
-    setDriverSaving(false); setDriverSaved(true);
-    setTimeout(() => setDriverSaved(false), 3000);
+    setDriverSaving(false);
   };
 
   const handleSaveExceptions = async (exceptions: Record<number, string>) => {

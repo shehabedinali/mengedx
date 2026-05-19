@@ -1,4 +1,4 @@
-type Status = 'planned' | 'boarding' | 'departed' | 'completed' | 'cancelled' | 'active' | 'inactive' | 'paid' | 'unpaid' | 'checked-in' | 'pending';
+export type Status = 'planned' | 'boarding' | 'departed' | 'completed' | 'cancelled' | 'active' | 'inactive' | 'paid' | 'unpaid' | 'checked-in' | 'pending';
 
 const map: Record<string, string> = {
   planned: 'bg-gray-100 text-gray-700',

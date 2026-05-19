@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
 
-export const fetchSeatMaps = createAsyncThunk('seatMaps/fetch', async (params: { company?: string } = {}, { rejectWithValue }) => {
+export const fetchSeatMaps = createAsyncThunk('seatMaps/fetch', async (params: { company?: string } | undefined = {}, { rejectWithValue }) => {
   try {
     const query: Record<string, any> = { $limit: 200 };
     if (params.company) query.company = params.company;

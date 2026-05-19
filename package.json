@@ -26,7 +26,7 @@
   "scripts": {
     "test": "npm run lint && npm run compile && npm run mocha",
     "lint": "eslint src/. test/. --config .eslintrc.json --ext .ts --fix",
-    "dev": "ts-node-dev --env-file dev.env --no-notify src/",
+    "dev": "ts-node-dev --env-file=dev.env --no-notify src/",
     "start": "node lib/",
     "mocha": "mocha --require ts-node/register --require source-map-support/register \"test/**/*.ts\" --recursive --exit",
     "compile": "shx rm -rf lib/ && tsc",
@@ -50,7 +50,7 @@
     "@feathersjs/express": "^4.5.19",
     "@feathersjs/feathers": "^4.5.19",
     "@feathersjs/socketio": "^4.5.19",
-    "@feathersjs/transport-commons": "^5.0.44",
+    "@feathersjs/transport-commons": "^4.5.19",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "feathers-mongoose": "^8.5.1",

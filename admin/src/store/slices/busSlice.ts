@@ -1,9 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
+import api from '@/lib/axios';
 
 interface FetchBusesQuery { search?: string; status?: string; }
 
-export const fetchBuses = createAsyncThunk('buses/fetch', async (params: FetchBusesQuery & { company?: string } = {}, { rejectWithValue }) => {
+export const fetchBuses = createAsyncThunk('buses/fetch', async (params: (FetchBusesQuery & { company?: string }) | undefined = {}, { rejectWithValue }) => {
   try {
     const query: Record<string, any> = { $populate: ['driver', 'company', 'seatMap'] };
     if (params.search) query.search = params.search;

@@ -160,7 +160,7 @@ export default function Reports() {
           <div style={{ height: 230 }}>
             <Line data={revenueData} options={{
               ...axisOptions,
-              plugins: { ...axisOptions.plugins, tooltip: { ...axisOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ETB ${ctx.parsed.y.toLocaleString()}` } } },
+              plugins: { ...axisOptions.plugins, tooltip: { ...axisOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ETB ${ctx.parsed.y !== null && ctx.parsed.y !== undefined ? ctx.parsed.y.toLocaleString() : ''}` } } },
             }} />
           </div>
         </Card>

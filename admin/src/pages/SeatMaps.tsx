@@ -219,9 +219,7 @@ export default function SeatMaps() {
   const [search,    setSearch]    = useState('');
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const user = useAppSelector((s: any) => s.auth.user);
-  const selectedCompanyId = useAppSelector((s: any) => s.selectedCompany.companyId);
-  const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
+
 
   useEffect(() => { dispatch(fetchSeatMaps()); }, [dispatch]);
 

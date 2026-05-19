@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
 
-export const fetchTrips = createAsyncThunk('trips/fetch', async (params: { company?: string } = {}, { rejectWithValue }) => {
+export const fetchTrips = createAsyncThunk('trips/fetch', async (params: { company?: string } | undefined = {}, { rejectWithValue }) => {
   try {
     const query: Record<string, any> = { $populate: ['bus', 'route'] };
     if (params.company) query.company = params.company;

@@ -7,7 +7,7 @@ interface User {
   phone: string;
   role: string;
   company:string
-  
+  email?: string;
 }
 
 interface AuthState {
@@ -23,13 +23,26 @@ export const login = createAsyncThunk(
   async (credentials: { phone: string; password: string }, { rejectWithValue }) => {
     try {
       console.log(credentials.password,credentials.phone)      
-      const {  users, accessToken } = await client.authenticate({
-        strategy: 'local',
-        phone: credentials.phone,
-        password: credentials.password,
-      });
+      let users:any, accessToken:any;
+      try {
+        const authResult = await client.authenticate({
+          strategy: 'local',
+          phone: credentials.phone,
+          password: credentials.password,
+        });
+
+        console.log("authentication result", authResult);
+        
+        accessToken = authResult.accessToken;
+        users = authResult.credential;
+      } catch (error) {
+        console.log("authentication failed", error);
+        return rejectWithValue('Login failed');
+      }
+
+      console.log(users)
       
-      if (users && users.status !== 'Active') throw new Error('User is not active');
+      // if (users && users.status !== 'active') throw new Error('User is not active');
 
       localStorage.setItem('feathers-jwt', accessToken);
 
@@ -39,6 +52,7 @@ export const login = createAsyncThunk(
         phone: users.phone,
         role: users.role,
         company: users.company,
+        email: users.email,
       };
 
   
@@ -71,6 +85,7 @@ export const reAuthenticate = createAsyncThunk(
         phone: users.phone,
         role: users.role,
         company: users.company,
+        email: users.email,
       };
       return { user, accessToken };
     } catch (e: any) {
@@ -99,6 +114,7 @@ const authSlice = createSlice({
         phone: p.phone,
         role: p.role,
         company: p.company,
+        email: p.email,
       };
       state.originalCompany = p.company ?? null;
       state.token = localStorage.getItem('feathers-jwt');

@@ -29,6 +29,7 @@ export default function Login() {
         dispatch(toast.error('Access denied. Insufficient permissions.'));
         return;
       }
+      console.log(result);
       dispatch(toast.success('Welcome back, ' + result.payload.user.name + '!'));
       navigate('/');
     } else {

@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
 import { markRead, markAllRead } from '@/store/slices/notificationSlice';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 interface Props { title: string; }
 
@@ -35,7 +34,6 @@ export default function Topbar({ title }: Props) {
   const navigate = useNavigate();
   const user = useAppSelector(s => s.auth.user);
   const alerts = useAppSelector(s => s.notifications.alerts);
-  const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
 
   const [notifOpen, setNotifOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);

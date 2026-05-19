@@ -27,7 +27,7 @@ const recentTripCols = [
   { key: 'status', label: 'Status', render: (r: any) => <Badge status={r.status ?? 'Planned'} /> },
 ];
 
-const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
 
 const baseOptions = {
   responsive: true,

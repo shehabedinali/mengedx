@@ -6,9 +6,7 @@ import { fetchCompanies } from '@/store/slices/companySlice';
 import { setSelectedCompany } from '@/store/slices/selectedCompanySlice';
 import { toast } from '@/store/slices/toastSlice';
 import Button from '@/components/Button';
-import Badge from '@/components/Badge';
 import Modal from '@/components/Modal';
-import Input from '@/components/Input';
 import Card from '@/components/Card';
 
 const empty = {
