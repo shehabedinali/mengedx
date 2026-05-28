@@ -3,7 +3,7 @@ import socketio from '@feathersjs/socketio-client'
 import authentication from '@feathersjs/authentication-client'
 import io from 'socket.io-client'
 
-export const socket = io('http://localhost:4040', {
+export const socket = io('http://localhost:3030', {
   transports: ['websocket'],
   autoConnect: true,
 })

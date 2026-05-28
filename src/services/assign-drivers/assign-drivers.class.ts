@@ -11,8 +11,9 @@ interface Data {
 //interface to define the data that will be passed to the patch method when assigning a driver to a bus. It will contain the driver id that will be assigned to the bus.
 interface AssignDriverData {
   driver : string;
-  driverAssignedby:string;
-  driverAssignedDate:Date;
+  driverAssignedBy:string;
+  driverAssignedAt : Date;
+  status: 'Assigned' | 'Active';
 }
 
 interface ServiceOptions {}
@@ -28,14 +29,15 @@ export class AssignDrivers implements ServiceMethods<Data> {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async find (params?: Params): Promise<Data[] | Paginated<Data>> {
-    return [];
+     const assignedDriver = await this.app.service('drivers').find({driver:params?.query?.driver});
+     console.log(assignedDriver)
+     return assignedDriver;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async get (id: Id, params?: Params): Promise<Data> {
-    return {
-      id, text: `A new message with ID: ${id}!`
-    };
+   
+    return [];
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -58,24 +60,25 @@ export class AssignDrivers implements ServiceMethods<Data> {
       throw new BadRequest(`Path assignDriver userId not found`);
     }
    
+    
     //check if the bus exists
-    await this.app.service('buses').get(id);
+    const isAvailable = await this.app.service('buses').get(id);    
     
+    const assignedBus = await this.app.service('buses').patch(id, {
+      driver: data.driver,
+      driverAssignedBy: data.driverAssignedBy,
+      driverAssignedAt: data.driverAssignedAt,
     
-    //check it any bus do have the driver with the given driverid
-    const result = await this.app.service('buses').find({
-      query: {
-        driver: data.driver,
-        $limit: 1,
-        $select: ['driverAssignedDate']
-      }
-    }) as Paginated<any>;
-    
-    if(result?.data?.[0]?.driverAssignedDate){
-      throw new BadRequest(`The driver is already assigned to a bus`);
-    }
+    });
 
-    const assignedBus = await this.app.service('buses').patch(id, data);
+    console.log(data.driver , isAvailable.driver?.toString());
+
+    const updatedDriver = await this.app.service('drivers').patch( data.driver || isAvailable.driver?.toString(), {
+      status: data.status
+    });
+
+    console.log("complited")
+       
     return assignedBus;
   }
 

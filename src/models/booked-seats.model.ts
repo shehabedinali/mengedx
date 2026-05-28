@@ -10,28 +10,117 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     bookedBy:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
-     trip: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'trips'
-        },
+   bookedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      required: true
+    },
+
+    trip: {
+      type: Schema.Types.ObjectId,
+      ref: 'trips',
+      required: true
+    },
+
+    
     user: {
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref: 'users'
-        },
-    seats: [{
-            type: String
-        }],
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default: null
+    },
+
+    seats: [
+      {
+        type: String,
+        required: true
+      }
+    ],
+
     status: {
-            type: String,
-            enum: ['Booked', 'Pending', 'PendingPayment', 'Driver',"SeatWithIssue"]
-        },
+      type: String,
+      enum: ['Booked', 'Pending', 'PendingPayment', 'Driver', 'SeatWithIssue', 'Cancelled'],
+      default: 'Pending'
+    },
+
     phoneNumber: {
-            type: String
-        },
+      type: String,
+      required: true
+    },
+
     emergencyContact: {
-            type: String
-        },
+      name: {
+        type: String,
+        default: null
+      },
+
+      phoneNumber: {
+        type: String,
+        default: null
+      }
+    },
+
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+
+    paidAmount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    paymentStatus: {
+      type: String,
+      enum: ['Unpaid', 'Partial', 'Paid', 'Refunded'],
+      default: 'Unpaid'
+    },
+
+    paymentMethod: {
+      type: String,
+      enum: ['Cash',  'MobileMoney', 'BankTransfer', null],
+      default: null
+    },
+
+
+    cancelledAt: {
+      type: Date,
+      default: null
+    },
+
+    cancelReason: {
+      type: String,
+      default: null
+    },
+
+    refundedAmount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    expiresAt: {
+      type: Date,
+      default: null
+    },
+
+    confirmedAt: {
+      type: Date,
+      default: null
+    },
+
+    checkedInAt: {
+      type: Date,
+      default: null
+    },
+
+    createdByRole: {
+      type: String,
+      enum: ['SuperAdmin', 'Admin', 'Manager', 'Ticketer', 'Customer'],
+      default: 'Customer'
+    },
+
 
   }, {
     timestamps: true

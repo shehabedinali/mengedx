@@ -4,12 +4,20 @@ import { HookContext } from "@feathersjs/feathers";
 
 export function beforePatchValidationAssignDrivers(options:any={}) {
     return (context : HookContext)=>{
+        
         const {data,params,app } = context;
-        if(!data.driver){
-            throw new BadRequest(`Path assignDriver driver not found`)
+        if(data.driver ){
+           data.driverAssignedBy = params?.users?._id.toString() || null; 
+           data.driverAssignedAt = new Date();
+           data.status = 'Assigned';
+        }else{
+           data.driverAssignedBy = null; 
+           data.driverAssignedAt = null;
+           data.status = 'Active';
         }
-        data.driverAssignedby = params?.credential?._id.toString() || null; 
-        data.driverAssignedDate = new Date();
+        
+        
+       
     
 
         return context

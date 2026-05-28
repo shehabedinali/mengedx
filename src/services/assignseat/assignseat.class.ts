@@ -5,9 +5,9 @@ import { BadRequest } from '@feathersjs/errors';
 interface Data {}
 
 interface PatchData{
-     seatmapAssignedBy: string;
-     seatmapAssignedDate: Date;
-     seatmap:string;
+     seatMapAssignedBy: string;
+     seatMapAssignedAt: Date;
+     seatMap:string;
 }
 
 interface ServiceOptions {}
@@ -51,17 +51,7 @@ export class Assignseat implements ServiceMethods<Data> {
     if( !id ){
         throw new Error('id is required for patching seatmap')
     }
-    const result = await this.app.service('buses').find({
-          query: {
-            _id: id,
-            $limit: 1,
-            $select: ['seatmapAssignedBy']
-          }
-        }) as Paginated<any>;
-        
-        if(result?.data?.[0]?.seatmapAssignedBy){
-          throw new BadRequest(`The seatmap is already assigned to a bus`);
-        }
+  
     const seatmap = this.app.service('buses').patch(id, data);
     return seatmap;
     

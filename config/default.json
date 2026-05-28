@@ -1,16 +1,15 @@
 {
   "host": "localhost",
-  "port": 4040,
+  "port": 3030,
   "public": "../public/",
-  "admin": "../public/admin/",
   "paginate": {
     "default": 10,
     "max": 50
   },
   "authentication": {
-    "entity": "credential",
-    "service": "credentials",
-    "secret": "oqErWowH9sojFZMpnjCHlvWcB6s=",
+    "entity": "users",
+    "service": "users",
+    "secret": "rYKRXEt1Oqw1STVtaQRR7vLjAMI=",
     "authStrategies": [
       "jwt",
       "local"
@@ -29,5 +28,6 @@
       "passwordField": "password"
     }
   },
+
   "mongodb": "mongodb://admin:admin123@ac-rasmbzy-shard-00-00.xcsvhha.mongodb.net:27017,ac-rasmbzy-shard-00-01.xcsvhha.mongodb.net:27017,ac-rasmbzy-shard-00-02.xcsvhha.mongodb.net:27017/mengedx?ssl=true&replicaSet=atlas-13svpe-shard-0&authSource=admin&appName=Cluster0"
 }

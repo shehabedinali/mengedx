@@ -9,13 +9,78 @@ export default function (app: Application): Model<any> {
   const modelName = 'companies';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
-  const schema = new Schema({
-     companyName:{
-            type: String,
-            // required: true,
-            unique: true
-        }
-  }, {
+  const schema = new Schema(
+     {
+      name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+
+    code: {
+      type: String,
+      required: true,
+      unique: true, 
+      uppercase: true,
+      trim: true
+    },
+
+    email: {
+      type: String,
+      required: false,
+      trim: true,
+      lowercase: true
+    },
+
+    phone: {
+      type: String,
+      required: false
+    },
+
+    address: {
+      country: {
+        type: String,
+        default: 'Ethiopia'
+      },
+      city: {type:String,default:'Addis Ababa'},
+      region: { type:String, default:'N/A'},
+      street: {type:String,default:'N/A'},
+    },
+
+    logoUrl: {
+      type: String,
+      default: null
+    },
+
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive', 'Suspended'],
+      default: 'Active'
+    },
+
+    
+    settings: {
+      currency: {
+        type: String,
+        default: 'ETB'
+      },
+      timezone: {
+        type: String,
+        default: 'Africa/Addis_Ababa'
+      },
+      allowBooking: {
+        type: Boolean,
+        default: true
+      }
+    },
+
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default:null
+    }
+  },
+   {
     timestamps: true
   });
 

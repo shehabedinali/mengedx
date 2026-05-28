@@ -10,8 +10,8 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-    driver:{
-            type: mongooseClient.Schema.Types.ObjectId,
+        driver:{
+            type: Schema.Types.ObjectId,
             ref:'drivers'
         }
         ,user:{

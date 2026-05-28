@@ -5,21 +5,45 @@
 import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
+
+
+
 export default function (app: Application): Model<any> {
   const modelName = 'seatmap';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema(
     {
-     busName : { type: String },
-     busModel:{type:String},
-     seatAvailability:{
-            type:Array.of({
-                seatTage:{type :String},
-                numberOfSeatsAssigned:{type:Number},
-            }),
-
+    code: {
+      type: String, 
+      required: true,
+      unique: true
+    },
+    numberOfSeats: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+    layout:{
+      type:{       
+        columns: { type: Number, required: true, min: 1 },
+        leftCols: { type: Number, required: true, min: 1 },
+        rightCols: { type: Number, required: true, min: 1 },
+        rows: { type: Number, required: true, min: 1 }
+    }
+    ,required: true
+    },  
+  
+    map: {
+      type: [
+        {
+          identifier: { type: String, required: true },
+          numberofSeats: { type: Number, required: true, min: 1 }
         }
+      ],
+      default: []
+    }
+  
   }, {
     timestamps: true
   });

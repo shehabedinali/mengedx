@@ -43,6 +43,7 @@
   "types": "lib/",
   "dependencies": {
     "@feathersjs/authentication": "^4.5.19",
+    "@feathersjs/authentication-client": "^5.0.44",
     "@feathersjs/authentication-local": "^4.5.19",
     "@feathersjs/authentication-oauth": "^4.5.19",
     "@feathersjs/configuration": "^4.5.19",
@@ -50,7 +51,8 @@
     "@feathersjs/express": "^4.5.19",
     "@feathersjs/feathers": "^4.5.19",
     "@feathersjs/socketio": "^4.5.19",
-    "@feathersjs/transport-commons": "^4.5.19",
+    "@feathersjs/socketio-client": "^5.0.40",
+    "@feathersjs/transport-commons": "^5.0.44",
     "compression": "^1.8.1",
     "cors": "^2.8.6",
     "feathers-mongoose": "^8.5.1",
@@ -58,6 +60,7 @@
     "mongodb-core": "^3.2.7",
     "mongoose": "^8.23.0",
     "serve-favicon": "^2.5.1",
+    "socket.io-client": "^2.4.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {

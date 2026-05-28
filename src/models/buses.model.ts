@@ -10,15 +10,84 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-    seatmap: { type: mongooseClient.Schema.Types.ObjectId, ref: 'seatmap' },
-    seatmapAssignedBy: { type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
-    driverAssignedby:{ type: mongooseClient.Schema.Types.ObjectId, ref: 'users' },
-    driverAssignedDate: { type: Date },
-    seatmapAssignedDate: { type: Date },
-    company: { type: mongooseClient.Schema.Types.ObjectId, ref: 'companies' },
-    driver: { type: mongooseClient.Schema.Types.ObjectId, ref: 'drivers' },
-    status: { type: String, enum: ['Active', 'Inactive'] ,default:'Active'},
-    capacity: { type: Number },  
+    company: {
+      type: Schema.Types.ObjectId,
+      ref: 'companies',
+      required: true
+    },
+
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    plateNumber: {
+      type: String,
+      required: true
+    },
+
+    capacity: {
+      type: Number,
+      required: true,
+      min: 1
+    },
+
+  
+
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive', 'Maintenance', 'Retired','Assigned'],
+      default: 'active'
+    },
+
+    driver: {
+      type: Schema.Types.ObjectId,
+      ref: 'drivers',
+      default: null
+    },
+
+    driverAssignedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default: null
+    },
+
+    driverAssignedAt: {
+      type: Date,
+      default: null
+    }, 
+
+    lastMaintenanceDate: {
+      type: Date,
+      default: null
+    },  
+
+    insuranceExpiry: {
+      type: Date,
+      default: null
+    },
+
+    registrationExpiry: {
+      type: Date,
+      default: null
+    },    
+    seatMap: {
+      type: Schema.Types.ObjectId,
+      ref: 'seatmap',
+      default: null
+    },
+    seatMapAssignedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default: null
+    },
+    seatMapAssignedAt: {
+      type: Date,
+      default: null
+    },    
+    lastTrip: { type: String },
+    
   }, {
     timestamps: true
   });
