@@ -11,14 +11,15 @@ export default function (app: Application): Model<any> {
   const { Schema } = mongooseClient;
   const schema = new Schema({
     bus: {
-            type: mongooseClient.Schema.Types.ObjectId,
+            type: Schema.Types.ObjectId,
             ref:'buses'
         },
         SeatWithExeption:{
-            type:Array.of({
-                seatTage:{type :String},
-                exeptionSeatsOrder:{type:Number},
-            }),
+            type:[{
+            identifier: { type: String, required: true },
+            seatNumber: { type: Number, required: true, min: 1 },
+            status:{type:String, enum:['Blocked','UnderMaintenance'], required:true}}
+           ]
         }
        
   }, {

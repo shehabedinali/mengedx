@@ -8,12 +8,12 @@ const { authenticate } = authentication.hooks;
 export default {
   before: {
     all: [ authenticate('jwt') ],
-    find: [],
-    get: [],
-    create: [],
-    update: [],
-    patch: [beforePatchValidationAssignDrivers()],
-    remove: []
+    find: [authenticate('jwt')],
+    get: [authenticate('jwt')],
+    create: [authenticate('jwt')],
+    update: [authenticate('jwt')],
+    patch: [authenticate("jwt"),beforePatchValidationAssignDrivers()],
+    remove: [authenticate('jwt')]
   },
 
   after: {

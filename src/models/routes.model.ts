@@ -10,12 +10,78 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     routeName:{type:String},
-        status:{type:String,enum:["Active","Inactive"]},
-        origin:{type:String},
-        destination:{type:[String]},
-        distance:{type:Number},
-        duration:{type:Number}   
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    origin: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    destination: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    distance: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+
+    duration: {
+      type: Number, // minutes
+      required: true,
+      min: 0
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active'
+    },
+
+    stops: {
+      type: [
+        {
+        name: {
+            type: String,
+            required: true
+          },
+
+        order: {
+            type: Number,
+            required: true,
+            min: 0
+          },
+
+       fareFromOrigin: {
+            type: Number,
+            required: true,
+            min: 0
+          }
+        }
+      ],
+      default: []
+    },
+
+   
+
+    totalTrips: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
+    company: {
+      type: Schema.Types.ObjectId,
+      ref: 'companies',
+      default: null
+    }
   }, {
     timestamps: true
   });

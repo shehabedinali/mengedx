@@ -10,20 +10,66 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-        bus:{
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref:'buses'
-        },
-        route:{
-            type: mongooseClient.Schema.Types.ObjectId,
-            ref:'routes'
-        },
-        fare:{type:Number},
-        departureTime:{type:Date},
-        tripDate:{type:Date},
-        tripStatus:{type:String, enum:['Completed','Cancelled','Inprogress']},
-        tripScheduledBy:{type: mongooseClient.Schema.Types.ObjectId, ref:'users'},
-        tripScheduledDate:{type:Date}
+      company: {
+      type: Schema.Types.ObjectId,
+      ref: 'companies',
+      required: true
+    },
+
+    bus: {
+      type: Schema.Types.ObjectId,
+      ref: 'buses',
+      required: true
+    },
+
+
+    route: {
+      type: Schema.Types.ObjectId,
+      ref: 'routes',
+      required: true
+    },
+
+    date: {
+      type: Date,
+      required: true
+    },
+
+    departureTime: {
+      type: String,
+      required: true
+    },
+    availableSeats: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+
+
+    status: {
+      type: String,
+      enum: [
+        'Planned',
+        'Boarding',
+        'Departed',
+        'InTransit',
+        'Completed',
+        'Cancelled',
+        'Delayed'
+      ],
+      default: 'Planned'
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      required: true
+    },
+
+    createdByRole: {
+      type: String,
+      enum: ['SuperAdmin', 'Admin', 'Manager', 'Ticketer'],
+      required: true
+    }
   }, {
     timestamps: true
   });

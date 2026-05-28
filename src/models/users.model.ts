@@ -10,16 +10,62 @@ export default function (app: Application): Model<any> {
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-     company: {
-                type:mongooseClient.Schema.Types.ObjectId,
-                ref:"companies"
-            },
-            //fileds
-            firstName :{ type:String },
-            lastName :{ type:String },              
-            status :{ type:String, enum:['active', 'inactive'] },
-            startedAt: { type: Date },
-            userRole: { type: String, enum:['Admin', 'User','Ticketer',"Manager"] }
+    company: {
+      type: Schema.Types.ObjectId,
+      ref: 'companies',
+      default: null
+    },
+
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true
+    },
+
+    password: {
+      type: String,
+      required: true
+    },
+
+    role: {
+      type: String,
+      enum: ['SuperAdmin', 'Admin', 'Manager', 'Ticketer', 'Customer'],
+      required: true
+    },
+
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive', 'Suspended'],
+      default: 'Active'
+    },
+    phone: {
+      type: String,
+      required:true,
+      unique:true
+    },
+    avatar: {
+      type: String,
+      default: null
+    },
+
+    lastLogin: {
+      type: Date,
+      default: null
+    },
+  
+    isOwner: {
+      type: Boolean,
+      default: false
+    }
+
   }, {
     timestamps: true
   });

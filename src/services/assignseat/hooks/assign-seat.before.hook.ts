@@ -4,11 +4,11 @@ import { HookContext } from "@feathersjs/feathers";
 export function beforePatchValidationAssignSeat(options:any={}) {
     return (context : HookContext)=>{
         const {data,params,app } = context;
-        if( !data.seatmap ){
+        if( !data.seatMap ){
             throw new BadRequest('path assignSeat required attributes not found')
         }
-        data.seatmapAssignedDate = new Date();
-        data.seatmapAssignedBy = params?.credential?._id.toString() || null;
+        data.seatMapAssignedAt = new Date();
+        data.seatMapAssignedBy = params?.users?._id.toString() || null;
         
         return context
     }

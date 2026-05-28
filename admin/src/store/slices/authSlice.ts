@@ -34,7 +34,7 @@ export const login = createAsyncThunk(
         console.log("authentication result", authResult);
         
         accessToken = authResult.accessToken;
-        users = authResult.credential;
+        users = authResult.users;
       } catch (error) {
         console.log("authentication failed", error);
         return rejectWithValue('Login failed');

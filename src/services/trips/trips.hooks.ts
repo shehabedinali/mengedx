@@ -1,5 +1,6 @@
 import { HooksObject } from '@feathersjs/feathers';
 import * as authentication from '@feathersjs/authentication';
+import { afterFindPopulator } from './hook/after';
 // Don't remove this comment. It's needed to format import lines nicely.
 
 const { authenticate } = authentication.hooks;
@@ -17,7 +18,7 @@ export default {
 
   after: {
     all: [],
-    find: [],
+    find: [afterFindPopulator()],
     get: [],
     create: [],
     update: [],
