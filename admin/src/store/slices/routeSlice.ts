@@ -1,11 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
 
-export const fetchRoutes = createAsyncThunk('routes/fetch', async (params: { company?: string } | undefined = {}, { rejectWithValue }) => {
+export const fetchRoutes = createAsyncThunk('routes/fetch', async (_params: { company?: string } | undefined = {}, { rejectWithValue }) => {
   try {
-    const query: Record<string, any> = {};
-    if (params.company) query.company = params.company;
-    const res = await client.service('routes').find({ query });
+    // Routes are platform-wide — no company filter
+    const res = await client.service('routes').find({ query: { $limit: 200 } });
     return res.data ?? res;
   }
   catch (err: any) { return rejectWithValue(err.message || 'Failed to fetch routes'); }

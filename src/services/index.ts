@@ -20,7 +20,11 @@ import scheduletrip from './scheduletrip/scheduletrip.service';
 import booktrips from './booktrips/booktrips.service';
 
 
-// Don't remove this comment. It's needed to format import lines nicely.
+import tickerOffice from './ticker-office/ticker-office.service';
+
+
+
+
 
 export default function (app: Application): void {
   app.configure(companies);
@@ -38,4 +42,6 @@ export default function (app: Application): void {
   app.configure(assignseat);
   app.configure(scheduletrip);
   app.configure(booktrips);
+  app.configure(tickerOffice);
+ 
 }

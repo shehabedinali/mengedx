@@ -1,23 +1,31 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
 
-export const fetchDashboardStats = createAsyncThunk('dashboard/fetchStats', async (_, { rejectWithValue }) => {
+export const fetchDashboardStats = createAsyncThunk('dashboard/fetchStats', async (_, { rejectWithValue, getState }) => {
   try {
+    const { auth } = getState() as { auth: { user: any } };
+    const role = auth.user?.role?.toLowerCase() ?? '';
+    const isSuperAdmin = role === 'superadmin';
+    const companyId = auth.user?.company;
+
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
 
+    // Non-superadmins only see their own company's data
+    const companyQuery = (!isSuperAdmin && companyId) ? { company: companyId } : {};
+
     const [tripsRes, busesRes, driversRes] = await Promise.all([
-      client.service('trips').find({ query: { $populate: ['route', 'bus'], $limit: 200 } }),
-      client.service('buses').find({ query: { $limit: 200 } }),
-      client.service('drivers').find({ query: { $limit: 200 } }),
+      client.service('trips').find({ query: { ...companyQuery, $populate: ['route', 'bus'], $limit: 200 } }),
+      client.service('buses').find({ query: { ...companyQuery, $limit: 200 } }),
+      client.service('drivers').find({ query: { ...companyQuery, $limit: 200 } }),
     ]);
 
-    const trips   = tripsRes.data ?? tripsRes;
-    const buses   = busesRes.data ?? busesRes;
+    const trips = tripsRes.data ?? tripsRes;
+    const buses = busesRes.data ?? busesRes;
     const drivers = driversRes.data ?? driversRes;
 
-    const todayTrips    = trips.filter((t: any) => t.date && t.date.slice(0, 10) === todayStr);
-    const activeBuses   = buses.filter((b: any) => b.status === 'Active');
+    const todayTrips = trips.filter((t: any) => t.date && t.date.slice(0, 10) === todayStr);
+    const activeBuses = buses.filter((b: any) => b.status === 'Active');
     const activeDrivers = drivers.filter((d: any) => d.status === 'Active');
 
     // trip status breakdown
@@ -41,14 +49,14 @@ export const fetchDashboardStats = createAsyncThunk('dashboard/fetchStats', asyn
     });
 
     return {
-      todayTrips:    todayTrips.length,
-      activeBuses:   activeBuses.length,
+      todayTrips: todayTrips.length,
+      activeBuses: activeBuses.length,
       activeDrivers: activeDrivers.length,
-      totalTrips:    trips.length,
+      totalTrips: trips.length,
       statusCounts,
       weeklyTrips,
       weekLabels,
-      recentTrips:   trips.slice(0, 5),
+      recentTrips: trips.slice(0, 5),
     };
   } catch (err: any) {
     return rejectWithValue(err.message || 'Failed to load dashboard');

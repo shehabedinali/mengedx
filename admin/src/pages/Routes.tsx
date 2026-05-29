@@ -18,9 +18,9 @@ const ROUTE_STATUSES = ['Active', 'Inactive'];
 
 const MODE_COLORS: Record<string, string> = {
   Express: 'bg-blue-50 text-blue-700 border-blue-200',
-  Local:   'bg-green-50 text-green-700 border-green-200',
-  Night:   'bg-indigo-50 text-indigo-700 border-indigo-200',
-  VIP:     'bg-purple-50 text-purple-700 border-purple-200',
+  Local: 'bg-green-50 text-green-700 border-green-200',
+  Night: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  VIP: 'bg-purple-50 text-purple-700 border-purple-200',
 };
 
 const fmtDuration = (min: number) => {
@@ -41,7 +41,7 @@ function RouteCard({ route, onClick }: { route: any; onClick: () => void }) {
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-xl bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center shrink-0 transition-colors">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-5 h-5 text-gray-500">
-              <path d="M3 12h18M3 6l9-3 9 3M3 18l9 3 9-3"/>
+              <path d="M3 12h18M3 6l9-3 9 3M3 18l9 3 9-3" />
             </svg>
           </div>
           <div>
@@ -110,23 +110,24 @@ export default function Routes() {
   const { data, loading, error } = useAppSelector(s => s.routes);
   const companies = useAppSelector((s: any) => s.companies.data);
   const selectedCompanyId = useAppSelector((s: any) => s.selectedCompany.companyId);
-  const [open, setOpen]         = useState(false);
-  const [form, setForm]         = useState(emptyForm);
-  const [stops, setStops]       = useState<Stop[]>([]);
-  const [search, setSearch]     = useState('');
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [stops, setStops] = useState<Stop[]>([]);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
 
   const user = useAppSelector(s => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
+  const isDispatcher = user?.role?.toLowerCase() === 'dispatcher';
   const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
   useEffect(() => { if (isSuperAdmin) dispatch(fetchCompanies()); }, [dispatch, isSuperAdmin]);
-  useEffect(() => { dispatch(fetchRoutes({ company: companyFilter })); }, [dispatch, companyFilter]);
+  useEffect(() => { dispatch(fetchRoutes()); }, [dispatch]);  // routes are platform-wide
 
-  const set        = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
-  const addStop    = () => setStops(s => [...s, { ...emptyStop }]);
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const addStop = () => setStops(s => [...s, { ...emptyStop }]);
   const removeStop = (i: number) => setStops(s => s.filter((_, idx) => idx !== i));
-  const setStop    = (i: number, k: keyof Stop, v: string) =>
+  const setStop = (i: number, k: keyof Stop, v: string) =>
     setStops(s => s.map((st, idx) => idx === i ? { ...st, [k]: v } : st));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,14 +144,14 @@ export default function Routes() {
   const filtered = data.filter((r: any) => {
     const q = search.toLowerCase();
     const matchSearch = String(r.name ?? '').toLowerCase().includes(q) ||
-                        String(r.origin ?? '').toLowerCase().includes(q) ||
-                        String(r.destination ?? '').toLowerCase().includes(q);
+      String(r.origin ?? '').toLowerCase().includes(q) ||
+      String(r.destination ?? '').toLowerCase().includes(q);
     const matchStatus = statusFilter === 'All' || r.status === statusFilter;
     return matchSearch && matchStatus;
   });
 
-  const active     = data.filter((r: any) => r.status === 'Active').length;
-  const inactive   = data.filter((r: any) => r.status === 'Inactive').length;
+  const active = data.filter((r: any) => r.status === 'Active').length;
+  const inactive = data.filter((r: any) => r.status === 'Inactive').length;
   const totalTrips = data.reduce((sum: number, r: any) => sum + (r.totalTrips ?? 0), 0);
 
   return (
@@ -170,7 +171,7 @@ export default function Routes() {
               {companies.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
           )}
-          <Button onClick={() => setOpen(true)}>+ Create Route</Button>
+          {!isDispatcher && <Button onClick={() => setOpen(true)}>+ Create Route</Button>}
         </div>
       </div>
       {error && <p className="text-sm text-red-500">{error}</p>}
@@ -179,9 +180,9 @@ export default function Routes() {
       <div className="grid grid-cols-4 gap-4">
         {[
           { label: 'Total Routes', value: data.length, color: 'text-gray-900' },
-          { label: 'Active',       value: active,      color: 'text-green-600' },
-          { label: 'Inactive',     value: inactive,    color: inactive > 0 ? 'text-red-600' : 'text-gray-900' },
-          { label: 'Total Trips',  value: totalTrips,  color: 'text-blue-600' },
+          { label: 'Active', value: active, color: 'text-green-600' },
+          { label: 'Inactive', value: inactive, color: inactive > 0 ? 'text-red-600' : 'text-gray-900' },
+          { label: 'Total Trips', value: totalTrips, color: 'text-blue-600' },
         ].map(s => (
           <Card key={s.label} className="flex flex-col gap-1 py-4 px-5">
             <p className="text-xs text-gray-400">{s.label}</p>
@@ -194,7 +195,7 @@ export default function Routes() {
       <div className="relative max-w-sm">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
           className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+          <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
         </svg>
         <input type="text" placeholder="Search by name, origin or destination…"
           value={search} onChange={e => setSearch(e.target.value)}
@@ -211,7 +212,7 @@ export default function Routes() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-2">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-10 h-10 text-gray-300">
-            <path d="M3 12h18M3 6l9-3 9 3M3 18l9 3 9-3"/>
+            <path d="M3 12h18M3 6l9-3 9 3M3 18l9 3 9-3" />
           </svg>
           <p className="text-sm text-gray-400">No routes match your search.</p>
         </div>
@@ -273,9 +274,8 @@ export default function Routes() {
             <div className="flex gap-2">
               {ROUTE_STATUSES.map(s => (
                 <button key={s} type="button" onClick={() => set('status', s)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${
-                    form.status === s ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
-                  }`}>
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${form.status === s ? 'bg-gray-900 text-white border-gray-900' : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                    }`}>
                   {s}
                 </button>
               ))}
@@ -289,7 +289,7 @@ export default function Routes() {
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Stops</p>
               <button type="button" onClick={addStop}
                 className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 px-2.5 py-1 rounded-lg border border-gray-200 hover:border-gray-400 transition-all">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path d="M12 5v14M5 12h14"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3"><path d="M12 5v14M5 12h14" /></svg>
                 Add Stop
               </button>
             </div>
@@ -308,7 +308,7 @@ export default function Routes() {
                 </div>
                 <button type="button" onClick={() => removeStop(i)}
                   className="shrink-0 w-7 h-7 rounded-full bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors mb-0.5">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5 text-red-500"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5 text-red-500"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
               </div>
             ))}

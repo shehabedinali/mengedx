@@ -1,10 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '@/lib/axios';
+import { client } from '../feathers';
 
-export const fetchBookings = createAsyncThunk('bookings/fetch', async (_, { rejectWithValue }) => {
-  try { const res = await api.get('/booktrips'); return res.data; }
-  catch (err: any) { return rejectWithValue(err.response?.data?.message || 'Failed to fetch bookings'); }
-});
+export const fetchBookings = createAsyncThunk(
+  'bookings/fetch',
+  async (params: { company?: string } | undefined = {}, { rejectWithValue }) => {
+    try {
+      const query: Record<string, any> = { $limit: 500, $populate: ['trip', 'bookedBy'] };
+      if (params?.company) query.company = params.company;
+      const res = await client.service('booktrips').find({ query });
+      return res.data ?? res;
+    } catch (err: any) {
+      return rejectWithValue(err.message || 'Failed to fetch bookings');
+    }
+  }
+);
 
 interface BookingState { data: any[]; loading: boolean; error: string | null; }
 

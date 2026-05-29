@@ -5,7 +5,7 @@ export const fetchManagersByCompany = createAsyncThunk(
   'managers/fetchByCompany',
   async (companyId: string, { rejectWithValue }) => {
     try {
-      const query: Record<string, any> = { $limit: 200, role: 'Manager' };
+      const query: Record<string, any> = { $limit: 200, role: { $in: ['Manager', 'Admin'] } };
       if (companyId) query.company = companyId;
       const res = await client.service('users').find({ query });
       return res.data ?? res;
@@ -59,9 +59,9 @@ const managersSlice = createSlice({
   reducers: { clearManagers(state) { state.data = []; } },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchManagersByCompany.pending,   (state) => { state.loading = true; state.error = null; })
+      .addCase(fetchManagersByCompany.pending, (state) => { state.loading = true; state.error = null; })
       .addCase(fetchManagersByCompany.fulfilled, (state, action) => { state.loading = false; state.data = action.payload; })
-      .addCase(fetchManagersByCompany.rejected,  (state, action) => { state.loading = false; state.error = action.payload as string; })
+      .addCase(fetchManagersByCompany.rejected, (state, action) => { state.loading = false; state.error = action.payload as string; })
       .addCase(createManager.fulfilled, (state, action) => { state.data.unshift(action.payload); })
       .addCase(updateManager.fulfilled, (state, action) => {
         const i = state.data.findIndex(m => m._id === action.payload._id);
