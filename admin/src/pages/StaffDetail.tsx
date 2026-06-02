@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { fetchStaff, updateStaff } from '@/store/slices/staffSlice';
-import { client } from '@/store/feathers';
+import { fetchStaff, updateStaff, deleteStaff } from '@/store/slices/staffSlice';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Modal from '@/components/Modal';
 
-const ROLES       = ['Admin', 'Ticketer'];
-const STATUSES    = ['Active', 'Inactive', 'Suspended'];
+const ROLES = ['Admin', 'Ticketer', 'Dispatcher'];
+const STATUSES = ['Active', 'Inactive', 'Suspended'];
 const DEPARTMENTS = ['Operations', 'Finance', 'Hr', 'It'];
 
 const STATUS_COLORS: Record<string, string> = {
-  Active:    'bg-green-50 text-green-700 border-green-200',
-  Inactive:  'bg-gray-100 text-gray-500 border-gray-200',
+  Active: 'bg-green-50 text-green-700 border-green-200',
+  Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
   Suspended: 'bg-red-50 text-red-600 border-red-200',
 };
 
 const ROLE_COLORS: Record<string, string> = {
-  Admin:    'bg-purple-50 text-purple-700 border-purple-200',
+  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
   Ticketer: 'bg-blue-50 text-blue-700 border-blue-200',
+  Dispatcher: 'bg-orange-50 text-orange-700 border-orange-200',
 };
 
 const fmt = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
@@ -35,15 +35,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function StaffDetail() {
-  const { id }   = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { data, loading } = useAppSelector(s => s.staff);
 
-  const [editOpen, setEditOpen]     = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirm] = useState(false);
-  const [deleting, setDeleting]     = useState(false);
-  const [form, setForm]             = useState<any>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [form, setForm] = useState<any>(null);
 
   useEffect(() => { if (!data.length) dispatch(fetchStaff()); }, [dispatch, data.length]);
 
@@ -51,9 +51,12 @@ export default function StaffDetail() {
 
   useEffect(() => {
     if (member) setForm({
-      name: member.name ?? '', phone: member.phone ?? '',
-      role: member.role ?? 'Ticketer', status: member.status ?? 'Active',
+      name: member.name ?? '',
+      phone: member.phone ?? '',
+      role: member.role ?? 'Ticketer',
+      status: member.status ?? 'Active',
       department: member.department ?? 'Operations',
+      office: member.office ?? '',
     });
   }, [member]);
 
@@ -67,7 +70,7 @@ export default function StaffDetail() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    await client.service('users').remove(id!);
+    await dispatch(deleteStaff(id!));
     navigate('/staff');
   };
 
@@ -95,7 +98,7 @@ export default function StaffDetail() {
       {/* breadcrumb */}
       <div className="flex items-center gap-2 text-sm">
         <button onClick={() => navigate('/staff')} className="text-gray-400 hover:text-black transition-colors flex items-center gap-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path d="M15 18l-6-6 6-6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4"><path d="M15 18l-6-6 6-6" /></svg>
           Staff
         </button>
         <span className="text-gray-300">/</span>
@@ -112,7 +115,7 @@ export default function StaffDetail() {
             <div>
               <h1 className="text-xl font-bold text-gray-900">{member.name}</h1>
               <p className="text-sm text-gray-400 mt-0.5">{member.email}</p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${ROLE_COLORS[member.role] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                   {member.role}
                 </span>
@@ -122,6 +125,11 @@ export default function StaffDetail() {
                 {member.department && (
                   <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
                     {member.department}
+                  </span>
+                )}
+                {member.role === 'Ticketer' && member.office && (
+                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
+                    {member.office}
                   </span>
                 )}
               </div>
@@ -134,23 +142,28 @@ export default function StaffDetail() {
           <Field label="Phone">{member.phone ?? '—'}</Field>
           <Field label="Last Login">{fmt(member.lastLogin)}</Field>
           <Field label="Department">{member.department ?? '—'}</Field>
-          <Field label="Owner">{member.isOwner ? 'Yes' : 'No'}</Field>
+          {member.role === 'Ticketer' && (
+            <Field label="Ticket Office">{member.office || '—'}</Field>
+          )}
+          {member.role !== 'Ticketer' && (
+            <Field label="Owner">{member.isOwner ? 'Yes' : 'No'}</Field>
+          )}
         </div>
 
         {/* actions */}
         <div className="flex items-center gap-2 px-5 pb-5">
           <Button onClick={() => setEditOpen(true)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 mr-1.5">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
             Edit
           </Button>
           {!confirmDelete ? (
             <Button variant="secondary" onClick={() => setConfirm(true)}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3.5 h-3.5 mr-1.5">
-                <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
               </svg>
               Delete
             </Button>
@@ -192,21 +205,39 @@ export default function StaffDetail() {
               <div className="flex gap-2">
                 {ROLES.map(r => (
                   <button key={r} type="button" onClick={() => set('role', r)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
-                      form.role === r ? `${ROLE_COLORS[r]} shadow-sm border-current` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
-                    }`}>{r}</button>
+                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.role === r ? `${ROLE_COLORS[r]} shadow-sm border-current` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
+                      }`}>{r}</button>
                 ))}
               </div>
             </div>
+
+            {/* Ticket Office — only for Ticketers */}
+            {form.role === 'Ticketer' && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-600">Ticket Office / Branch</label>
+                <div className="relative">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
+                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                  <input
+                    value={form.office ?? ''}
+                    onChange={e => set('office', e.target.value)}
+                    placeholder="e.g. Addis Ababa — Meskel Square"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                  />
+                </div>
+              </div>
+            )}
 
             <div className="flex flex-col gap-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Department</p>
               <div className="grid grid-cols-2 gap-2">
                 {DEPARTMENTS.map(d => (
                   <button key={d} type="button" onClick={() => set('department', d)}
-                    className={`py-2 rounded-xl border-2 text-xs font-semibold transition-all ${
-                      form.department === d ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
-                    }`}>{d}</button>
+                    className={`py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.department === d ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
+                      }`}>{d}</button>
                 ))}
               </div>
             </div>
@@ -216,9 +247,8 @@ export default function StaffDetail() {
               <div className="flex gap-2">
                 {STATUSES.map(s => (
                   <button key={s} type="button" onClick={() => set('status', s)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
-                      form.status === s ? `${STATUS_COLORS[s]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
-                    }`}>{s}</button>
+                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.status === s ? `${STATUS_COLORS[s]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
+                      }`}>{s}</button>
                 ))}
               </div>
             </div>

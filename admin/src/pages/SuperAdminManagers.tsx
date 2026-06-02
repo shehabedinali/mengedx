@@ -8,26 +8,26 @@ import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Modal from '@/components/Modal';
 
-const ROLES    = ['SuperAdmin', 'Admin', 'Manager', 'Ticketer', 'Customer'];
+const ROLES = ['SuperAdmin', 'Admin', 'Manager', 'Ticketer', 'Customer'];
 const STATUSES = ['Active', 'Inactive', 'Suspended'];
 
 const STATUS_COLORS: Record<string, string> = {
-  Active:    'bg-green-50 text-green-700 border-green-200',
-  Inactive:  'bg-gray-100 text-gray-500 border-gray-200',
+  Active: 'bg-green-50 text-green-700 border-green-200',
+  Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
   Suspended: 'bg-red-50 text-red-600 border-red-200',
 };
 
 const ROLE_COLORS: Record<string, string> = {
   SuperAdmin: 'bg-red-50 text-red-700 border-red-200',
-  Admin:      'bg-purple-50 text-purple-700 border-purple-200',
-  Manager:    'bg-indigo-50 text-indigo-700 border-indigo-200',
-  Ticketer:   'bg-blue-50 text-blue-700 border-blue-200',
-  Customer:   'bg-gray-50 text-gray-600 border-gray-200',
+  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
+  Manager: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  Ticketer: 'bg-blue-50 text-blue-700 border-blue-200',
+  Customer: 'bg-gray-50 text-gray-600 border-gray-200',
 };
 
 const emptyForm = { name: '', email: '', phone: '', password: '', role: 'Manager', status: 'Active', company: '', isOwner: false };
-const initials  = (n: string) => n?.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?';
-const fmt       = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+const initials = (n: string) => n?.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?';
+const fmt = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
 
 function ManagerCard({ manager, onEdit, onDelete, onNavigate }: { manager: any; onEdit: () => void; onDelete: () => void; onNavigate: () => void }) {
   return (
@@ -87,10 +87,11 @@ export default function SuperAdminManagers() {
   const user = useAppSelector((s: any) => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
 
-  const [search,  setSearch]  = useState('');
-  const [open,    setOpen]    = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('All');
+  const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
-  const [form,    setForm]    = useState<any>(emptyForm);
+  const [form, setForm] = useState<any>(emptyForm);
 
   useEffect(() => { dispatch(fetchCompanies()); }, [dispatch]);
   useEffect(() => { dispatch(fetchManagersByCompany(selectedCompanyId ?? '')); }, [dispatch, selectedCompanyId]);
@@ -119,17 +120,19 @@ export default function SuperAdminManagers() {
 
   const filtered = managers.filter((m: any) => {
     const q = search.toLowerCase();
-    return m.name?.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q) || m.phone?.includes(q);
+    const matchSearch = m.name?.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q) || m.phone?.includes(q);
+    const matchRole = roleFilter === 'All' || m.role === roleFilter;
+    return matchSearch && matchRole;
   });
 
-  const active    = managers.filter((m: any) => m.status === 'Active').length;
+  const active = managers.filter((m: any) => m.status === 'Active').length;
   const suspended = managers.filter((m: any) => m.status === 'Suspended').length;
 
   return (
     <div className="flex flex-col gap-5">
 
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">{managers.length} manager{managers.length !== 1 ? 's' : ''}</p>
+        <p className="text-sm text-gray-500">{managers.length} user{managers.length !== 1 ? 's' : ''}</p>
         <div className="flex items-center gap-3">
           {isSuperAdmin && (
             <select
@@ -141,17 +144,18 @@ export default function SuperAdminManagers() {
               {companies.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
           )}
-          <Button onClick={openAdd}>+ Add Manager</Button>
+          <Button onClick={openAdd}>+ Add User</Button>
         </div>
       </div>
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total Managers', value: managers.length, color: 'text-gray-900' },
-          { label: 'Active',         value: active,          color: 'text-green-600' },
-          { label: 'Suspended',      value: suspended,       color: suspended > 0 ? 'text-red-600' : 'text-gray-900' },
+          { label: 'Total Users', value: managers.length, color: 'text-gray-900' },
+          { label: 'Active', value: active, color: 'text-green-600' },
+          { label: 'Suspended', value: suspended, color: suspended > 0 ? 'text-red-600' : 'text-gray-900' },
+          { label: 'Admins', value: managers.filter((m: any) => m.role === 'Admin').length, color: 'text-purple-600' },
         ].map(s => (
           <Card key={s.label} className="flex flex-col gap-1 py-4 px-5">
             <p className="text-xs text-gray-400">{s.label}</p>
@@ -167,20 +171,30 @@ export default function SuperAdminManagers() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 gap-2">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-10 h-10 text-gray-300">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
           </svg>
-          <p className="text-sm text-gray-400">No managers found.</p>
+          <p className="text-sm text-gray-400">No users found.</p>
         </div>
       ) : (
         <>
-          <div className="relative max-w-sm">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
-              className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input type="text" placeholder="Search by name, email or phone…"
-              value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white" />
+          <div className="flex items-center gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
+                className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+              </svg>
+              <input type="text" placeholder="Search by name, email or phone…"
+                value={search} onChange={e => setSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent bg-white" />
+            </div>
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl">
+              {['All', ...ROLES].map(r => (
+                <button key={r} onClick={() => setRoleFilter(r)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${roleFilter === r ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-black'}`}>
+                  {r}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             {filtered.map((m: any) => (
@@ -191,15 +205,15 @@ export default function SuperAdminManagers() {
       )}
 
       <Modal open={open} onClose={() => setOpen(false)}
-        title={editing ? 'Edit Manager' : 'Add New Manager'}
-        subtitle={editing ? `Editing ${editing.name}` : 'Add a new manager'}>
+        title={editing ? 'Edit User' : 'Add New User'}
+        subtitle={editing ? `Editing ${editing.name}` : 'Create a new admin or manager account'}>
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
           <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
             <div className="w-14 h-14 rounded-2xl bg-gray-900 text-white text-lg font-bold flex items-center justify-center shrink-0">
               {form.name ? initials(form.name) : (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-gray-400">
-                  <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                  <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                 </svg>
               )}
             </div>
@@ -259,9 +273,8 @@ export default function SuperAdminManagers() {
             <div className="flex flex-wrap gap-2">
               {ROLES.map(r => (
                 <button key={r} type="button" onClick={() => set('role', r)}
-                  className={`px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all ${
-                    form.role === r ? `${ROLE_COLORS[r]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
-                  }`}>{r}</button>
+                  className={`px-3 py-2 rounded-xl border-2 text-xs font-bold transition-all ${form.role === r ? `${ROLE_COLORS[r]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
+                    }`}>{r}</button>
               ))}
             </div>
           </div>
@@ -271,9 +284,8 @@ export default function SuperAdminManagers() {
             <div className="flex gap-2">
               {STATUSES.map(s => (
                 <button key={s} type="button" onClick={() => set('status', s)}
-                  className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${
-                    form.status === s ? `${STATUS_COLORS[s]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
-                  }`}>{s}</button>
+                  className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.status === s ? `${STATUS_COLORS[s]} shadow-sm` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
+                    }`}>{s}</button>
               ))}
             </div>
           </div>
@@ -295,9 +307,9 @@ export default function SuperAdminManagers() {
             <button type="submit"
               className="flex-1 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
-                <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
               </svg>
-              {editing ? 'Save Changes' : 'Add Manager'}
+              {editing ? 'Save Changes' : 'Add User'}
             </button>
           </div>
         </form>

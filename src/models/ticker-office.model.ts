@@ -1,4 +1,4 @@
-// users-model.ts - A mongoose model
+// TickerOffice-model.ts - A mongoose model
 //
 // See http://mongoosejs.com/docs/models.html
 // for more of what you can do here.
@@ -6,66 +6,48 @@ import { Application } from '../declarations';
 import { Model, Mongoose } from 'mongoose';
 
 export default function (app: Application): Model<any> {
-  const modelName = 'users';
+  const modelName = 'tickerOffice';
   const mongooseClient: Mongoose = app.get('mongooseClient');
   const { Schema } = mongooseClient;
   const schema = new Schema({
-    company: {
-      type: Schema.Types.ObjectId,
-      ref: 'companies',
-      default: null
-    },
-
     name: {
       type: String,
-      required: true,
-      trim: true
+      require:true
     },
-
-    email: {
+    code: {
       type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true
+      required:true
+
+    },
+    company:{
+      type: Schema.Types.ObjectId,
+      require: true
     },
 
-    password: {
-      type: String,
-      required: true
+    address: {
+      city: String,
+      subCity: String,
+      geoLocation: {
+        latitude: Number,
+        longitude: Number
+      }
     },
 
-    role: {
-      type: String,
-      enum: ['SuperAdmin', 'Admin', 'Manager', 'Dispatcher', 'Customer'],
-      required: true
+    contact: {
+      phoneNumber: String,
+      email: String
     },
 
+    users: [{
+      type: Schema.Types.ObjectId,
+      ref: 'users',
+      default:null
+    }],
     status: {
       type: String,
-      enum: ['Active', 'Inactive', 'Suspended'],
-      default: 'Active'
-    },
-    phone: {
-      type: String,
-      required:true,
-      unique:true
-    },
-    avatar: {
-      type: String,
-      default: null
-    },
-
-    lastLogin: {
-      type: Date,
-      default: null
-    },
-  
-    isOwner: {
-      type: Boolean,
-      default: false
+      enum: ['ACTIVE', 'INACTIVE'],
+      default: 'ACTIVE'
     }
-
   }, {
     timestamps: true
   });

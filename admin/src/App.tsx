@@ -23,6 +23,8 @@ import SuperAdminManagers from '@/pages/SuperAdminManagers';
 import ManagerDetail from '@/pages/ManagerDetail';
 import SeatMaps from '@/pages/SeatMaps';
 import Reports from '@/pages/Reports';
+import TickerOffices from '@/pages/TickerOffices';
+import TickerOfficeDetail from '@/pages/TickerOfficeDetail';
 import Toaster from '@/components/Toaster';
 
 export default function App() {
@@ -52,6 +54,8 @@ export default function App() {
               <Route path="/managers/:id" element={<ManagerDetail />} />
               <Route path="/seatmaps" element={<SeatMaps />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/ticker-offices" element={<TickerOffices />} />
+              <Route path="/ticker-offices/:id" element={<TickerOfficeDetail />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
