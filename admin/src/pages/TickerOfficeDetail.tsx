@@ -73,7 +73,7 @@ export default function TickerOfficeDetail() {
     const assignedIds = new Set((office.users ?? []).map(resolveUserId));
 
     // Cashiers not yet assigned (company + role query from users service)
-    const available = companyCashiers.filter(c => !assignedIds.has(String(c._id)));
+    const available = companyCashiers.filter((c: any) => !assignedIds.has(String(c._id)));
 
     // Assigned cashiers (populated on office.users from API)
     const assignedUsers = (office.users ?? []).filter(

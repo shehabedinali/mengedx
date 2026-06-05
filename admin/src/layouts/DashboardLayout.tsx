@@ -13,7 +13,6 @@ const titles: Record<string, string> = {
   '/staff': 'Staff',
   '/seatmaps': 'Seat Maps',
   '/companies': 'Companies',
-  '/managers': 'Users',
   '/reports': 'Reports',
   '/ticker-offices': 'Ticker Offices',
   '/cashier': 'Dashboard',
@@ -31,7 +30,6 @@ export default function DashboardLayout() {
           pathname.startsWith('/trips/') ? 'Trip Detail' :
             pathname.startsWith('/staff/') ? 'Staff Detail' :
               pathname.startsWith('/companies/') ? 'Company Detail' :
-                pathname.startsWith('/managers/') ? 'Manager Detail' :
                   pathname.startsWith('/ticker-offices/') ? 'Ticker Office Detail' :
                     'Dashboard'
   );

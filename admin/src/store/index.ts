@@ -11,7 +11,6 @@ import toastReducer from './slices/toastSlice';
 import notificationReducer from './slices/notificationSlice';
 import seatMapReducer from './slices/seatMapSlice';
 import companyReducer from './slices/companySlice';
-import managersReducer from './slices/managersSlice';
 import selectedCompanyReducer from './slices/selectedCompanySlice';
 import tickerOfficeReducer from './slices/tickerOfficeSlice';
 
@@ -29,7 +28,6 @@ export const store = configureStore({
     notifications: notificationReducer,
     seatMaps: seatMapReducer,
     companies: companyReducer,
-    managers: managersReducer,
     selectedCompany: selectedCompanyReducer,
     tickerOffices: tickerOfficeReducer,
   },

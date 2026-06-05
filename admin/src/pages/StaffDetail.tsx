@@ -57,7 +57,7 @@ export default function StaffDetail() {
       name: member.name ?? '',
       email: member.email ?? '',
       phone: fromEthiopianPhone(member.phone ?? ''),
-      role: member.role ?? 'Ticketer',
+      role: member.role ?? ROLES[0],
       status: member.status ?? 'Active',
       company: (typeof member.company === 'object' && member.company?._id
         ? member.company._id

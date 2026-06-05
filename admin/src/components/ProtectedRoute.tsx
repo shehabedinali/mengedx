@@ -6,7 +6,7 @@ import { client, socket } from '@/store/feathers';
 import { isDispatcherRole, isCashierRole } from '@/constants/roles';
 
 // Routes only SuperAdmin can access
-const SUPER_ADMIN_ONLY = ['/companies', '/managers'];
+const SUPER_ADMIN_ONLY = ['/companies'];
 
 // Routes Admin cannot access
 const ADMIN_BLOCKED = ['/dispatch', '/routes', '/seatmaps'];

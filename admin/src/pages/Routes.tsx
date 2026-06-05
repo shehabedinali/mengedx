@@ -120,7 +120,6 @@ export default function Routes() {
   const user = useAppSelector(s => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
   const isDispatcher = isDispatcherRole(user?.role);
-  const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
   useEffect(() => { if (isSuperAdmin) dispatch(fetchCompanies()); }, [dispatch, isSuperAdmin]);
   useEffect(() => { dispatch(fetchRoutes()); }, [dispatch]);  // routes are platform-wide

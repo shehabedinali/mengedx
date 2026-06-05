@@ -7,8 +7,7 @@ import Card from '@/components/Card';
 const PAYMENT_STATUSES = ['Paid', 'Unpaid', 'Pending'];
 const BOOKING_STATUSES = ['Confirmed', 'Cancelled', 'Pending', 'checked-in'];
 
-const fmt = (d: string) =>
-  d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
 
 export default function Bookings() {
   const dispatch = useAppDispatch();

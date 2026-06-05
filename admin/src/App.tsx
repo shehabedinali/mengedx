@@ -19,8 +19,6 @@ import Staff from '@/pages/Staff';
 import StaffDetail from '@/pages/StaffDetail';
 import Companies from '@/pages/Companies';
 import CompanyDetail from '@/pages/CompanyDetail';
-import SuperAdminManagers from '@/pages/SuperAdminManagers';
-import ManagerDetail from '@/pages/ManagerDetail';
 import SeatMaps from '@/pages/SeatMaps';
 import Reports from '@/pages/Reports';
 import TickerOffices from '@/pages/TickerOffices';
@@ -58,8 +56,6 @@ export default function App() {
               <Route path="/staff/:id" element={<StaffDetail />} />
               <Route path="/companies" element={<Companies />} />
               <Route path="/companies/:id" element={<CompanyDetail />} />
-              <Route path="/managers" element={<SuperAdminManagers />} />
-              <Route path="/managers/:id" element={<ManagerDetail />} />
               <Route path="/seatmaps" element={<SeatMaps />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/ticker-offices" element={<TickerOffices />} />

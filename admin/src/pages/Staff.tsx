@@ -30,13 +30,6 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   ),
-  Ticketer: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4">
-      <rect x="2" y="7" width="20" height="13" rx="2" />
-      <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2" />
-      <path d="M12 12v4M10 14h4" />
-    </svg>
-  ),
   Dispatcher: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4">
       <rect x="3" y="4" width="18" height="17" rx="2" />
@@ -52,7 +45,7 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
 };
 
 const empty = {
-  name: '', email: '', phone: '', role: 'Ticketer',
+  name: '', email: '', phone: '', role: 'Cashier',
   status: 'Active', password: '',
   company: '',  // chosen by superadmin
 };
@@ -195,7 +188,6 @@ export default function Staff() {
   // Stat counts
   const active = data.filter((m: any) => m.status === 'Active').length;
   const suspended = data.filter((m: any) => m.status === 'Suspended').length;
-  const ticketers = data.filter((m: any) => m.role === 'Ticketer').length;
   const cashiers = data.filter((m: any) => m.role === 'Cashier').length;
   const dispatchers = data.filter((m: any) => m.role === 'Dispatcher').length;
 
@@ -210,11 +202,10 @@ export default function Staff() {
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {/* stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Staff', value: data.length, color: 'text-gray-900' },
           { label: 'Active', value: active, color: 'text-green-600' },
-          { label: 'Ticketers', value: ticketers, color: 'text-blue-600' },
           { label: 'Cashiers', value: cashiers, color: 'text-emerald-600' },
           {
             label: 'Dispatch', value: dispatchers, color: 'text-orange-600',
