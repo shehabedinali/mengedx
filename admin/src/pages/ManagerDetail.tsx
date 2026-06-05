@@ -7,6 +7,7 @@ import { client } from '@/store/feathers';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
+import { MANAGER_PAGE_ROLES, MANAGER_PAGE_ROLE_COLORS } from '@/constants/roles';
 
 const fmt = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 const initials = (n: string) => n?.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?';
@@ -17,15 +18,8 @@ const STATUS_COLORS: Record<string, string> = {
   Suspended: 'bg-red-50 text-red-600 border-red-200',
 };
 
-const ROLE_COLORS: Record<string, string> = {
-  SuperAdmin: 'bg-red-50 text-red-700 border-red-200',
-  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
-  Manager: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-  Ticketer: 'bg-blue-50 text-blue-700 border-blue-200',
-  Customer: 'bg-gray-50 text-gray-600 border-gray-200',
-};
-
-const ROLES = ['SuperAdmin', 'Admin', 'Manager', 'Ticketer', 'Customer'];
+const ROLE_COLORS = MANAGER_PAGE_ROLE_COLORS;
+const ROLES = [...MANAGER_PAGE_ROLES];
 const STATUSES = ['Active', 'Inactive', 'Suspended'];
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -72,7 +66,7 @@ export default function ManagerDetail() {
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, company: form.company || null };
+    const { company: _company, ...payload } = form;
     await dispatch(updateManager({ id: id!, data: payload }));
     setEditOpen(false);
   };
@@ -201,17 +195,15 @@ export default function ManagerDetail() {
               </div>
             </div>
 
-            {/* company */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-600">Company</label>
-              <select value={form.company} onChange={e => set('company', e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent">
-                <option value="">— No Company —</option>
-                {companies.map((c: any) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
+            {/* company — read-only on edit */}
+            {company && (
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-600">Company</label>
+                <p className="text-sm text-gray-700 px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
+                  {company.name}
+                </p>
+              </div>
+            )}
 
             {/* name + phone */}
             <div className="grid grid-cols-2 gap-3">

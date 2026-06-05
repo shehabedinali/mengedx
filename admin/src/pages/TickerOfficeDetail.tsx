@@ -1,14 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
     fetchTickerOfficeById,
+    fetchCompanyCashiers,
+    resolveCompanyId,
     addUserToOffice,
     removeUserFromOffice,
     clearCurrent,
 } from '@/store/slices/tickerOfficeSlice';
 import { toast } from '@/store/slices/toastSlice';
-import { client } from '@/store/feathers';
+import { isDispatcherRole } from '@/constants/roles';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 
@@ -20,15 +22,27 @@ export default function TickerOfficeDetail() {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
 
-    const { current: office, detailLoading } = useAppSelector((s: any) => s.tickerOffices);
+    const {
+        current: office,
+        detailLoading,
+        companyCashiers,
+        cashiersLoading,
+    } = useAppSelector((s: any) => s.tickerOffices);
     const authUser = useAppSelector(s => s.auth.user);
-    const isSuperAdmin = authUser?.role?.toLowerCase() === 'superadmin';
 
-    // Dispatchers that belong to the same company, not yet in this office
-    const [companyDispatchers, setCompanyDispatchers] = useState<any[]>([]);
-    const [dispatchersLoading, setDispatchersLoading] = useState(false);
     const [addOpen, setAddOpen] = useState(false);
     const [removing, setRemoving] = useState<string | null>(null);
+
+    const userCompanyId = resolveCompanyId(authUser?.company);
+    const isSuperAdmin = authUser?.role?.toLowerCase() === 'superadmin';
+    const isDispatcher = isDispatcherRole(authUser?.role);
+
+    /** Cashiers query company: dispatcher/admin/manager → logged-in user's company; superadmin → office company */
+    const cashierCompanyId = useMemo(() => {
+        if (!isSuperAdmin && userCompanyId) return userCompanyId;
+        if (!office) return userCompanyId;
+        return resolveCompanyId(office.company) ?? userCompanyId;
+    }, [office, userCompanyId, isSuperAdmin]);
 
     // Fetch the office on mount
     useEffect(() => {
@@ -36,19 +50,11 @@ export default function TickerOfficeDetail() {
         return () => { dispatch(clearCurrent()); };
     }, [id, dispatch]);
 
-    // Once we have the office, fetch dispatchers for that company
+    // users service: company + role Cashier + status Active
     useEffect(() => {
-        if (!office) return;
-        const companyId = office.company?._id ?? office.company;
-        if (!companyId) return;
-
-        setDispatchersLoading(true);
-        client.service('users')
-            .find({ query: { company: companyId, role: 'Dispatcher' } })
-            .then((res: any) => setCompanyDispatchers(res.data ?? res))
-            .catch(() => setCompanyDispatchers([]))
-            .finally(() => setDispatchersLoading(false));
-    }, [office]);
+        if (!cashierCompanyId) return;
+        dispatch(fetchCompanyCashiers(cashierCompanyId));
+    }, [cashierCompanyId, dispatch]);
 
     if (detailLoading || !office) {
         return (
@@ -60,26 +66,29 @@ export default function TickerOfficeDetail() {
         );
     }
 
+    const resolveUserId = (u: unknown) =>
+        String(typeof u === 'object' && u !== null ? (u as { _id: unknown })._id : u);
+
     // IDs already in the office
-    const assignedIds = new Set(
-        (office.users ?? []).map((u: any) => (typeof u === 'string' ? u : u._id))
+    const assignedIds = new Set((office.users ?? []).map(resolveUserId));
+
+    // Cashiers not yet assigned (company + role query from users service)
+    const available = companyCashiers.filter(c => !assignedIds.has(String(c._id)));
+
+    // Assigned cashiers (populated on office.users from API)
+    const assignedUsers = (office.users ?? []).filter(
+        (u: unknown) => typeof u === 'object' && u !== null && (u as { name?: string }).name
     );
-
-    // Dispatchers not yet assigned
-    const available = companyDispatchers.filter(d => !assignedIds.has(d._id));
-
-    // Assigned users that are populated objects (may be IDs if not populated)
-    const assignedUsers = (office.users ?? []).filter((u: any) => typeof u === 'object' && u !== null);
 
     const handleAdd = async (userId: string) => {
         if (!id) return;
         const result = await dispatch(addUserToOffice({ officeId: id, userId }));
         if (addUserToOffice.fulfilled.match(result)) {
-            dispatch(toast.success('Dispatcher added to office.'));
-            // Refresh
+            dispatch(toast.success('Cashier added to office.'));
             dispatch(fetchTickerOfficeById(id));
+            if (cashierCompanyId) dispatch(fetchCompanyCashiers(cashierCompanyId));
         } else {
-            dispatch(toast.error((result.payload as string) || 'Failed to add dispatcher'));
+            dispatch(toast.error((result.payload as string) || 'Failed to add cashier'));
         }
     };
 
@@ -88,10 +97,11 @@ export default function TickerOfficeDetail() {
         setRemoving(userId);
         const result = await dispatch(removeUserFromOffice({ officeId: id, userId }));
         if (removeUserFromOffice.fulfilled.match(result)) {
-            dispatch(toast.success('Dispatcher removed from office.'));
+            dispatch(toast.success('Cashier removed from office.'));
             dispatch(fetchTickerOfficeById(id));
+            if (cashierCompanyId) dispatch(fetchCompanyCashiers(cashierCompanyId));
         } else {
-            dispatch(toast.error((result.payload as string) || 'Failed to remove dispatcher'));
+            dispatch(toast.error((result.payload as string) || 'Failed to remove cashier'));
         }
         setRemoving(null);
     };
@@ -182,27 +192,34 @@ export default function TickerOfficeDetail() {
                 </div>
             </Card>
 
-            {/* ── Assigned Dispatchers ── */}
+            {/* ── Assigned Cashiers ── */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h3 className="text-sm font-bold text-gray-900">Assigned Dispatchers</h3>
+                        <h3 className="text-sm font-bold text-gray-900">Assigned Cashiers</h3>
                         <p className="text-xs text-gray-400 mt-0.5">
-                            {assignedIds.size} dispatcher{assignedIds.size !== 1 ? 's' : ''} assigned to this office
+                            {assignedIds.size} cashier{assignedIds.size !== 1 ? 's' : ''} assigned to this office
                         </p>
                     </div>
-                    <Button onClick={() => setAddOpen(v => !v)}>
-                        {addOpen ? 'Close' : '+ Add Dispatcher'}
+                    <Button onClick={() => {
+                        const next = !addOpen;
+                        setAddOpen(next);
+                        if (next && cashierCompanyId) dispatch(fetchCompanyCashiers(cashierCompanyId));
+                    }}>
+                        {addOpen ? 'Close' : '+ Add Cashier'}
                     </Button>
                 </div>
 
-                {/* ── Add dispatcher panel ── */}
+                {/* ── Add cashier panel ── */}
                 {addOpen && (
                     <Card className="flex flex-col gap-3">
                         <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
-                            Available Dispatchers — same company
+                            Available Cashiers — Active cashiers
+                            {isDispatcher && userCompanyId && (
+                                <span className="normal-case font-normal text-gray-400"> (your company)</span>
+                            )}
                         </p>
-                        {dispatchersLoading ? (
+                        {cashiersLoading ? (
                             <div className="flex flex-col gap-2">
                                 {[1, 2, 3].map(i => <div key={i} className="h-12 skeleton rounded-xl" />)}
                             </div>
@@ -212,29 +229,29 @@ export default function TickerOfficeDetail() {
                                     <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                                 </svg>
                                 <p className="text-xs text-gray-400">
-                                    {companyDispatchers.length === 0
-                                        ? 'No dispatchers found for this company.'
-                                        : 'All company dispatchers are already assigned.'}
+                                    {companyCashiers.length === 0
+                                        ? 'No cashiers found for this company.'
+                                        : 'All company cashiers are already assigned.'}
                                 </p>
                             </div>
                         ) : (
                             <div className="flex flex-col gap-2">
-                                {available.map((d: any) => (
+                                {available.map((c: any) => (
                                     <div
-                                        key={d._id}
+                                        key={c._id}
                                         className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl border border-gray-100 bg-gray-50 hover:border-gray-200 transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center shrink-0">
-                                                {initials(d.name)}
+                                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                                {initials(c.name)}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-semibold text-gray-900">{d.name}</p>
-                                                <p className="text-[10px] text-gray-400">{d.phone ?? d.email ?? '—'}</p>
+                                                <p className="text-xs font-semibold text-gray-900">{c.name}</p>
+                                                <p className="text-[10px] text-gray-400">{c.phone ?? c.email ?? '—'}</p>
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => handleAdd(d._id)}
+                                            onClick={() => handleAdd(c._id)}
                                             className="flex items-center gap-1 text-xs font-semibold text-white bg-gray-900 hover:bg-gray-700 px-3 py-1.5 rounded-lg transition-colors"
                                         >
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3 h-3">
@@ -256,8 +273,8 @@ export default function TickerOfficeDetail() {
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-10 h-10 text-gray-200">
                                 <circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
                             </svg>
-                            <p className="text-sm text-gray-400">No dispatchers assigned yet.</p>
-                            <p className="text-xs text-gray-300">Click "+ Add Dispatcher" to assign one.</p>
+                            <p className="text-sm text-gray-400">No cashiers assigned yet.</p>
+                            <p className="text-xs text-gray-300">Click "+ Add Cashier" to assign one.</p>
                         </div>
                     </Card>
                 ) : (
@@ -269,23 +286,26 @@ export default function TickerOfficeDetail() {
                             >
                                 <div className="flex items-center gap-3">
                                     {/* avatar */}
-                                    <div className="w-11 h-11 rounded-xl bg-orange-100 text-orange-700 text-sm font-bold flex items-center justify-center shrink-0">
+                                    <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-700 text-sm font-bold flex items-center justify-center shrink-0">
                                         {initials(u.name)}
                                     </div>
                                     {/* info */}
                                     <div className="flex flex-col gap-0.5">
                                         <p className="text-sm font-semibold text-gray-900">{u.name}</p>
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
-                                                Dispatcher
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                Cashier
                                             </span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${u.status === 'Active'
-                                                    ? 'bg-green-50 text-green-700 border-green-200'
-                                                    : u.status === 'Suspended'
-                                                        ? 'bg-red-50 text-red-600 border-red-200'
-                                                        : 'bg-gray-100 text-gray-500 border-gray-200'
-                                                }`}>
-                                                {u.status ?? 'Active'}
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                                u.status === 'Assigned'
+                                                    ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                                    : u.status === 'Active'
+                                                        ? 'bg-green-50 text-green-700 border-green-200'
+                                                        : u.status === 'Suspended'
+                                                            ? 'bg-red-50 text-red-600 border-red-200'
+                                                            : 'bg-gray-100 text-gray-500 border-gray-200'
+                                            }`}>
+                                                {u.status ?? 'Assigned'}
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-3 mt-1 flex-wrap">

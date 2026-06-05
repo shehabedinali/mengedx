@@ -2,25 +2,23 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchStaff, updateStaff, deleteStaff } from '@/store/slices/staffSlice';
+import { fetchCompanies } from '@/store/slices/companySlice';
 import Button from '@/components/Button';
 import Card from '@/components/Card';
 import Modal from '@/components/Modal';
+import { getStaffRolesForUser, STAFF_ROLE_COLORS } from '@/constants/roles';
+import { fromEthiopianPhone, stripLocalPhoneDigits, toEthiopianPhone } from '@/lib/phone';
 
-const ROLES = ['Admin', 'Ticketer', 'Dispatcher'];
 const STATUSES = ['Active', 'Inactive', 'Suspended'];
-const DEPARTMENTS = ['Operations', 'Finance', 'Hr', 'It'];
 
 const STATUS_COLORS: Record<string, string> = {
   Active: 'bg-green-50 text-green-700 border-green-200',
+  Assigned: 'bg-sky-50 text-sky-700 border-sky-200',
   Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
   Suspended: 'bg-red-50 text-red-600 border-red-200',
 };
 
-const ROLE_COLORS: Record<string, string> = {
-  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
-  Ticketer: 'bg-blue-50 text-blue-700 border-blue-200',
-  Dispatcher: 'bg-orange-50 text-orange-700 border-orange-200',
-};
+const ROLE_COLORS = STAFF_ROLE_COLORS;
 
 const fmt = (d: string) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
 const initials = (name: string) => name?.split(' ').map((p: string) => p[0]).join('').slice(0, 2).toUpperCase() ?? '?';
@@ -39,24 +37,31 @@ export default function StaffDetail() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { data, loading } = useAppSelector(s => s.staff);
+  const companies = useAppSelector((s: any) => s.companies.data);
+  const authUser = useAppSelector(s => s.auth.user);
+  const isSuperAdmin = authUser?.role?.toLowerCase() === 'superadmin';
+  const ROLES = [...getStaffRolesForUser(authUser?.role)];
 
   const [editOpen, setEditOpen] = useState(false);
   const [confirmDelete, setConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState<any>(null);
 
-  useEffect(() => { if (!data.length) dispatch(fetchStaff()); }, [dispatch, data.length]);
+  useEffect(() => { if (!data.length) dispatch(fetchStaff(undefined)); }, [dispatch, data.length]);
+  useEffect(() => { if (isSuperAdmin) dispatch(fetchCompanies()); }, [dispatch, isSuperAdmin]);
 
   const member = data.find((m: any) => m._id === id);
 
   useEffect(() => {
     if (member) setForm({
       name: member.name ?? '',
-      phone: member.phone ?? '',
+      email: member.email ?? '',
+      phone: fromEthiopianPhone(member.phone ?? ''),
       role: member.role ?? 'Ticketer',
       status: member.status ?? 'Active',
-      department: member.department ?? 'Operations',
-      office: member.office ?? '',
+      company: (typeof member.company === 'object' && member.company?._id
+        ? member.company._id
+        : member.company) ?? '',
     });
   }, [member]);
 
@@ -64,7 +69,10 @@ export default function StaffDetail() {
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await dispatch(updateStaff({ id: id!, data: form }));
+    const { company, ...rest } = form;
+    const data: Record<string, string> = { ...rest, phone: toEthiopianPhone(form.phone) };
+    if (isSuperAdmin && company) data.company = company;
+    await dispatch(updateStaff({ id: id!, data }));
     setEditOpen(false);
   };
 
@@ -122,16 +130,6 @@ export default function StaffDetail() {
                 <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${STATUS_COLORS[member.status] ?? 'bg-gray-100 text-gray-500 border-gray-200'}`}>
                   {member.status}
                 </span>
-                {member.department && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 border border-gray-200">
-                    {member.department}
-                  </span>
-                )}
-                {member.role === 'Ticketer' && member.office && (
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
-                    {member.office}
-                  </span>
-                )}
               </div>
             </div>
           </div>
@@ -140,14 +138,9 @@ export default function StaffDetail() {
         {/* info grid */}
         <div className="grid grid-cols-2 gap-x-10 gap-y-4 px-5 pb-5 border-t border-gray-100 pt-4">
           <Field label="Phone">{member.phone ?? '—'}</Field>
+          <Field label="Email">{member.email ?? '—'}</Field>
           <Field label="Last Login">{fmt(member.lastLogin)}</Field>
-          <Field label="Department">{member.department ?? '—'}</Field>
-          {member.role === 'Ticketer' && (
-            <Field label="Ticket Office">{member.office || '—'}</Field>
-          )}
-          {member.role !== 'Ticketer' && (
-            <Field label="Owner">{member.isOwner ? 'Yes' : 'No'}</Field>
-          )}
+          <Field label="Owner">{member.isOwner ? 'Yes' : 'No'}</Field>
         </div>
 
         {/* actions */}
@@ -193,51 +186,62 @@ export default function StaffDetail() {
                     className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Phone</label>
-                  <input value={form.phone} onChange={e => set('phone', e.target.value)}
-                    className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all" />
+                  <label className="text-xs font-semibold text-gray-600">Phone *</label>
+                  <div className="flex rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-gray-900 focus-within:border-transparent transition-all">
+                    <div className="flex items-center gap-1 px-3 py-2.5 bg-gray-50 border-r border-gray-200 select-none shrink-0">
+                      <span className="text-sm">🇪🇹</span>
+                      <span className="text-sm font-medium text-gray-700">+251</span>
+                    </div>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={e => set('phone', stripLocalPhoneDigits(e.target.value))}
+                      placeholder="912 345 678"
+                      maxLength={9}
+                      required
+                      className="flex-1 min-w-0 px-3 py-2.5 text-sm outline-none bg-white"
+                    />
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Role</p>
-              <div className="flex gap-2">
-                {ROLES.map(r => (
-                  <button key={r} type="button" onClick={() => set('role', r)}
-                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.role === r ? `${ROLE_COLORS[r]} shadow-sm border-current` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
-                      }`}>{r}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Ticket Office — only for Ticketers */}
-            {form.role === 'Ticketer' && (
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-600">Ticket Office / Branch</label>
-                <div className="relative">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
-                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
+                <div className="flex flex-col gap-1.5 col-span-2">
+                  <label className="text-xs font-semibold text-gray-600">Email *</label>
                   <input
-                    value={form.office ?? ''}
-                    onChange={e => set('office', e.target.value)}
-                    placeholder="e.g. Addis Ababa — Meskel Square"
-                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                    type="email"
+                    value={form.email}
+                    onChange={e => set('email', e.target.value)}
+                    placeholder="e.g. tigist@company.com"
+                    required
+                    autoComplete="off"
+                    className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                   />
                 </div>
+              </div>
+            </div>
+
+            {isSuperAdmin && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-600">Company *</label>
+                <select
+                  value={form.company ?? ''}
+                  onChange={e => set('company', e.target.value)}
+                  required
+                  className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all bg-white"
+                >
+                  <option value="">Select a company…</option>
+                  {companies.map((c: any) => (
+                    <option key={c._id} value={c._id}>{c.name ?? c.companyName}</option>
+                  ))}
+                </select>
               </div>
             )}
 
             <div className="flex flex-col gap-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Department</p>
-              <div className="grid grid-cols-2 gap-2">
-                {DEPARTMENTS.map(d => (
-                  <button key={d} type="button" onClick={() => set('department', d)}
-                    className={`py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.department === d ? 'border-gray-900 bg-gray-900 text-white' : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
-                      }`}>{d}</button>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Role</p>
+              <div className="flex flex-wrap gap-2">
+                {ROLES.map(r => (
+                  <button key={r} type="button" onClick={() => set('role', r)}
+                    className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-bold transition-all ${form.role === r ? `${ROLE_COLORS[r]} shadow-sm border-current` : 'border-gray-100 bg-white text-gray-400 hover:border-gray-300'
+                      }`}>{r}</button>
                 ))}
               </div>
             </div>

@@ -69,7 +69,7 @@ export default function CompanyDetail() {
       client.service('buses').find({ query: { company: id, $limit: 200 } }),
       client.service('drivers').find({ query: { company: id, $limit: 200 } }),
       client.service('trips').find({ query: { company: id, $limit: 200, $populate: ['route', 'bus'] } }),
-      client.service('users').find({ query: { company: id, role: { $in: ['Manager', 'Admin', 'Ticketer'] }, $limit: 200 } }),
+      client.service('users').find({ query: { company: id, role: { $in: ['Manager', 'Admin', 'Ticketer', 'Dispatcher', 'Cashier'] }, $limit: 200 } }),
     ]).then(([buses, drivers, trips, staff]) => {
       setCompanyData({
         buses:   buses.data ?? buses,

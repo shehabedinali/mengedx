@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
+import { isDispatcherRole, isCashierRole } from '@/constants/roles';
 
 // ─── Icon helpers ────────────────────────────────────────────────────────────
 const icons = {
@@ -58,7 +59,14 @@ const managerNav = [
   { to: '/staff', label: 'Staff', icon: icons.staff },
 ];
 
-// Dispatcher: read-only operational view — no CRUD
+// Cashier: ticket selling flow
+const cashierNav = [
+  { to: '/cashier', label: 'Dashboard', icon: icons.dashboard },
+  { to: '/cashier/trips', label: 'Trips', icon: icons.trips },
+  { to: '/cashier/bookings', label: 'Bookings', icon: icons.bookings },
+];
+
+// Dispatcher: operational view + ticker office cashier assignment
 const dispatcherNav = [
   { to: '/', label: 'Dashboard', icon: icons.dashboard },
   { to: '/routes', label: 'Routes', icon: icons.routes },
@@ -66,6 +74,7 @@ const dispatcherNav = [
   { to: '/buses', label: 'Buses', icon: icons.buses },
   { to: '/drivers', label: 'Drivers', icon: icons.drivers },
   { to: '/dispatch', label: 'Daily Dispatch', icon: icons.dispatch },
+  { to: '/ticker-offices', label: 'Ticker Offices', icon: icons.tickerOffice },
 ];
 
 // Role badge colours
@@ -75,6 +84,7 @@ const ROLE_BADGE: Record<string, string> = {
   manager: 'bg-indigo-100 text-indigo-700',
   dispatcher: 'bg-orange-100 text-orange-700',
   ticketer: 'bg-blue-100 text-blue-700',
+  cashier: 'bg-emerald-100 text-emerald-700',
 };
 
 export default function Sidebar() {
@@ -85,17 +95,20 @@ export default function Sidebar() {
   const role = user?.role?.toLowerCase() ?? '';
   const isSuperAdmin = role === 'superadmin';
   const isAdmin = role === 'admin';
-  const isDispatcher = role === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user?.role);
+  const isCashier = isCashierRole(user?.role);
 
   const navItems = isSuperAdmin ? superAdminNav
     : isAdmin ? adminNav
       : isDispatcher ? dispatcherNav
-        : managerNav;
+        : isCashier ? cashierNav
+          : managerNav;
 
   const portalLabel = isSuperAdmin ? 'Super Admin'
     : isAdmin ? 'Admin Portal'
       : isDispatcher ? 'Dispatcher'
-        : 'Manager Portal';
+        : isCashier ? 'Cashier'
+          : 'Manager Portal';
 
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
 

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from '@/store';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import DashboardLayout from '@/layouts/DashboardLayout';
+import RoleLayout from '@/layouts/RoleLayout';
 import Login from '@/pages/Login';
 import Dashboard from '@/pages/Dashboard';
 import Buses from '@/pages/Buses';
@@ -25,6 +25,10 @@ import SeatMaps from '@/pages/SeatMaps';
 import Reports from '@/pages/Reports';
 import TickerOffices from '@/pages/TickerOffices';
 import TickerOfficeDetail from '@/pages/TickerOfficeDetail';
+import CashierDashboard from '@/pages/cashier/CashierDashboard';
+import CashierTrips from '@/pages/cashier/CashierTrips';
+import CashierTripBook from '@/pages/cashier/CashierTripBook';
+import CashierBookings from '@/pages/cashier/CashierBookings';
 import Toaster from '@/components/Toaster';
 
 export default function App() {
@@ -34,7 +38,11 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route element={<ProtectedRoute />}>
-            <Route element={<DashboardLayout />}>
+            <Route element={<RoleLayout />}>
+              <Route path="/cashier" element={<CashierDashboard />} />
+              <Route path="/cashier/trips" element={<CashierTrips />} />
+              <Route path="/cashier/trips/:id/book" element={<CashierTripBook />} />
+              <Route path="/cashier/bookings" element={<CashierBookings />} />
               <Route path="/" element={<Dashboard />} />
               <Route path="/buses" element={<Buses />} />
               <Route path="/buses/:id" element={<BusDetail />} />

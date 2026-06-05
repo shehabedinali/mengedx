@@ -9,6 +9,7 @@ import { setSelectedCompany } from '@/store/slices/selectedCompanySlice';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 import Card from '@/components/Card';
+import { isDispatcherRole } from '@/constants/roles';
 
 const TRIP_STATUSES = ['Planned', 'Boarding', 'Departed', 'InTransit', 'Completed', 'Cancelled', 'Delayed'];
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -406,7 +407,7 @@ export default function Trips() {
 
   const user = useAppSelector(s => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
-  const isDispatcher = user?.role?.toLowerCase() === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user?.role);
   const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
   useEffect(() => { if (isSuperAdmin) dispatch(fetchCompanies()); }, [dispatch, isSuperAdmin]);

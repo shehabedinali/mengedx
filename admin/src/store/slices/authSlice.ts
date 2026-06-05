@@ -6,7 +6,8 @@ interface User {
   name: string;
   phone: string;
   role: string;
-  company:string
+  status?: string;
+  company: string;
   email?: string;
 }
 
@@ -51,6 +52,7 @@ export const login = createAsyncThunk(
         name: users.name,
         phone: users.phone,
         role: users.role,
+        status: users.status,
         company: users.company,
         email: users.email,
       };
@@ -84,6 +86,7 @@ export const reAuthenticate = createAsyncThunk(
         name: users.name,
         phone: users.phone,
         role: users.role,
+        status: users.status,
         company: users.company,
         email: users.email,
       };
@@ -113,6 +116,7 @@ const authSlice = createSlice({
         name: p.name,
         phone: p.phone,
         role: p.role,
+        status: p.status,
         company: p.company,
         email: p.email,
       };

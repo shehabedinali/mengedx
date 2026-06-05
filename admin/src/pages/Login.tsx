@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { login } from '@/store/slices/authSlice';
+import { login, logout } from '@/store/slices/authSlice';
 import { toast } from '@/store/slices/toastSlice';
 import Button from '@/components/Button';
 
@@ -24,7 +24,21 @@ export default function Login() {
     const result = await dispatch(login({ phone: fullPhone, password }));
     if (login.fulfilled.match(result)) {
       const role = result.payload?.user?.role;
+      const status = result.payload?.user?.status;
+
+      if (role === 'Cashier') {
+        if (!['Active', 'Assigned'].includes(status ?? '')) {
+          dispatch(logout());
+          dispatch(toast.error('Your cashier account is not active.'));
+          return;
+        }
+        dispatch(toast.success('Welcome, ' + result.payload.user.name + '!'));
+        navigate('/cashier');
+        return;
+      }
+
       if (!['SuperAdmin', 'Admin', 'Manager', 'Dispatcher'].includes(role)) {
+        dispatch(logout());
         dispatch(toast.error('Access denied. Insufficient permissions.'));
         return;
       }
@@ -149,7 +163,7 @@ export default function Login() {
             </form>
 
             <p className="text-xs text-gray-400 mt-5 text-center">
-              Access restricted to SuperAdmin, Admin, and Manager roles
+              Staff portal: SuperAdmin, Admin, Manager, Dispatcher · Cashier desk login supported
             </p>
           </div>
         </div>

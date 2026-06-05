@@ -9,6 +9,7 @@ import Button from '@/components/Button';
 import Badge from '@/components/Badge';
 import Modal from '@/components/Modal';
 import Card from '@/components/Card';
+import { isDispatcherRole } from '@/constants/roles';
 
 const empty = { name: '', plateNumber: '', capacity: '', status: 'Active', insuranceExpiry: '', registrationExpiry: '', company: '' };
 const BUS_STATUSES = ['Active', 'Inactive', 'Maintenance', 'Retired'];
@@ -87,7 +88,7 @@ export default function Buses() {
 
   const user = useAppSelector(s => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
-  const isDispatcher = user?.role?.toLowerCase() === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user?.role);
   const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
   useEffect(() => { if (isSuperAdmin) dispatch(fetchCompanies()); }, [dispatch, isSuperAdmin]);

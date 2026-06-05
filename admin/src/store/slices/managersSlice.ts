@@ -1,11 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { client } from '../feathers';
+import { MANAGER_FETCH_ROLES } from '@/constants/roles';
 
 export const fetchManagersByCompany = createAsyncThunk(
   'managers/fetchByCompany',
   async (companyId: string, { rejectWithValue }) => {
     try {
-      const query: Record<string, any> = { $limit: 200, role: { $in: ['Manager', 'Admin'] } };
+      const query: Record<string, any> = { $limit: 200, role: { $in: [...MANAGER_FETCH_ROLES] } };
       if (companyId) query.company = companyId;
       const res = await client.service('users').find({ query });
       return res.data ?? res;
