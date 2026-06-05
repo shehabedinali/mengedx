@@ -3,15 +3,19 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { restoreSession } from '@/store/slices/authSlice';
 import { client, socket } from '@/store/feathers';
+import { isDispatcherRole, isCashierRole } from '@/constants/roles';
 
 // Routes only SuperAdmin can access
-const SUPER_ADMIN_ONLY = ['/companies', '/managers'];
+const SUPER_ADMIN_ONLY = ['/companies'];
 
 // Routes Admin cannot access
 const ADMIN_BLOCKED = ['/dispatch', '/routes', '/seatmaps'];
 
-// Routes Dispatcher CAN access (read-only)
-const DISPATCHER_ALLOWED = ['/', '/routes', '/trips', '/buses', '/drivers', '/dispatch'];
+// Routes Dispatcher CAN access
+const DISPATCHER_ALLOWED = ['/', '/routes', '/trips', '/buses', '/drivers', '/dispatch', '/ticker-offices'];
+
+// Cashier portal routes
+const CASHIER_ALLOWED = ['/cashier'];
 
 function getValidToken() {
   try {
@@ -43,6 +47,7 @@ export default function ProtectedRoute() {
               name: fullUser.name,
               phone: fullUser.phone,
               role: fullUser.role,
+              status: fullUser.status,
               company: fullUser.company,
             }));
           }
@@ -67,7 +72,26 @@ export default function ProtectedRoute() {
   const isSuperAdmin = role === 'superadmin';
   const isAdmin = role === 'admin';
   const isManager = role === 'manager';
-  const isDispatcher = role === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user.role);
+  const isCashier = isCashierRole(user.role);
+
+  // Cashiers: only cashier portal
+  if (isCashier) {
+    if (!['Active', 'Assigned'].includes(user.status ?? '')) {
+      localStorage.removeItem('feathers-jwt');
+      return <Navigate to="/login" replace />;
+    }
+    const allowed = CASHIER_ALLOWED.some(r =>
+      r === '/cashier' ? pathname === '/cashier' || pathname.startsWith('/cashier/') : pathname.startsWith(r)
+    );
+    if (!allowed) return <Navigate to="/cashier" replace />;
+    return <Outlet />;
+  }
+
+  // Non-cashiers cannot access cashier portal
+  if (pathname.startsWith('/cashier')) {
+    return <Navigate to="/" replace />;
+  }
 
   // Block non-superadmins from superadmin-only routes
   if (!isSuperAdmin && SUPER_ADMIN_ONLY.some(r => pathname.startsWith(r))) {

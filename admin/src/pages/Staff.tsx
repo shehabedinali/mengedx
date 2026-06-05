@@ -6,37 +6,28 @@ import { fetchCompanies } from '@/store/slices/companySlice';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 import Card from '@/components/Card';
+import {
+  getStaffRolesForUser,
+  STAFF_ROLE_COLORS,
+  ROLE_HINTS,
+} from '@/constants/roles';
+import { fromEthiopianPhone, stripLocalPhoneDigits, toEthiopianPhone } from '@/lib/phone';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-// SuperAdmin can assign Admin role too; Admin can only create Admin / Dispatcher
-const SUPER_ROLES = ['Admin', 'Ticketer', 'Dispatcher'];
-const ADMIN_ROLES = ['Admin', 'Dispatcher'];
 const STATUSES = ['Active', 'Inactive', 'Suspended'];
-const DEPARTMENTS = ['Operations', 'Finance', 'Hr', 'It'];
 
 const STATUS_COLORS: Record<string, string> = {
   Active: 'bg-green-50 text-green-700 border-green-200',
+  Assigned: 'bg-sky-50 text-sky-700 border-sky-200',
   Inactive: 'bg-gray-100 text-gray-500 border-gray-200',
   Suspended: 'bg-red-50 text-red-600 border-red-200',
 };
 
-const ROLE_COLORS: Record<string, string> = {
-  Admin: 'bg-purple-50 text-purple-700 border-purple-200',
-  Ticketer: 'bg-blue-50 text-blue-700 border-blue-200',
-  Dispatcher: 'bg-orange-50 text-orange-700 border-orange-200',
-};
+const ROLE_COLORS = STAFF_ROLE_COLORS;
 
 const ROLE_ICONS: Record<string, React.ReactNode> = {
   Admin: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  ),
-  Ticketer: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4">
-      <rect x="2" y="7" width="20" height="13" rx="2" />
-      <path d="M16 7V5a2 2 0 0 0-4 0v2M8 7V5a2 2 0 0 0-4 0v2" />
-      <path d="M12 12v4M10 14h4" />
     </svg>
   ),
   Dispatcher: (
@@ -45,12 +36,17 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
       <path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01" />
     </svg>
   ),
+  Cashier: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  ),
 };
 
 const empty = {
-  name: '', email: '', phone: '', role: 'Ticketer',
-  status: 'Active', department: 'Operations', password: '',
-  office: '',   // ticket office name — relevant for Ticketers
+  name: '', email: '', phone: '', role: 'Cashier',
+  status: 'Active', password: '',
   company: '',  // chosen by superadmin
 };
 
@@ -84,21 +80,6 @@ function StaffCard({ member, onEdit, onClick }: { member: any; onEdit: () => voi
           {ROLE_ICONS[member.role]}
           {member.role}
         </span>
-        {/* Ticket office badge for Ticketers */}
-        {member.role === 'Ticketer' && member.office && (
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3 h-3">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            {member.office}
-          </span>
-        )}
-        {member.department && (
-          <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200 text-gray-600">
-            {member.department}
-          </span>
-        )}
         {member.phone && (
           <span className="text-[11px] text-gray-400">{member.phone}</span>
         )}
@@ -131,13 +112,11 @@ export default function Staff() {
   const user = useAppSelector(s => s.auth.user);
   const selectedCompanyId = useAppSelector(s => s.selectedCompany.companyId);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
 
   // SuperAdmin can filter by company; others see their own company
   const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
-  // Roles available in the add/edit form depend on who is logged in
-  const availableRoles = isSuperAdmin ? SUPER_ROLES : ADMIN_ROLES;
+  const availableRoles = [...getStaffRolesForUser(user?.role)];
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
@@ -167,24 +146,26 @@ export default function Staff() {
     setForm({
       name: m.name ?? '',
       email: m.email ?? '',
-      phone: m.phone ?? '',
+      phone: fromEthiopianPhone(m.phone ?? ''),
       role: m.role ?? availableRoles[0],
       status: m.status ?? 'Active',
-      department: m.department ?? 'Operations',
       password: '',
-      office: m.office ?? '',
-      company: m.company ?? '',
+      company: (typeof m.company === 'object' && m.company?._id ? m.company._id : m.company) ?? '',
     });
     setOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const phone = toEthiopianPhone(form.phone);
     if (editing) {
-      const { password, email, company, ...rest } = form;
-      await dispatch(updateStaff({ id: editing._id, data: rest }));
+      const { password, company, ...payload } = form;
+      const data: Record<string, string> = { ...payload, phone };
+      if (company) data.company = company;
+      if (password) data.password = password;
+      await dispatch(updateStaff({ id: editing._id, data }));
     } else {
-      await dispatch(createStaff(form));
+      await dispatch(createStaff({ ...form, phone }));
     }
     setOpen(false);
     setForm({ ...empty, role: availableRoles[0] });
@@ -196,7 +177,7 @@ export default function Staff() {
   };
 
   // Filter list
-  const displayRoles = isSuperAdmin ? SUPER_ROLES : ADMIN_ROLES;
+  const displayRoles = availableRoles;
   const filtered = data.filter((m: any) => {
     const q = search.toLowerCase();
     const matchSearch = m.name?.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q) || m.phone?.includes(q);
@@ -207,7 +188,7 @@ export default function Staff() {
   // Stat counts
   const active = data.filter((m: any) => m.status === 'Active').length;
   const suspended = data.filter((m: any) => m.status === 'Suspended').length;
-  const ticketers = data.filter((m: any) => m.role === 'Ticketer').length;
+  const cashiers = data.filter((m: any) => m.role === 'Cashier').length;
   const dispatchers = data.filter((m: any) => m.role === 'Dispatcher').length;
 
   return (
@@ -221,13 +202,13 @@ export default function Staff() {
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       {/* stat cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
           { label: 'Total Staff', value: data.length, color: 'text-gray-900' },
           { label: 'Active', value: active, color: 'text-green-600' },
-          { label: 'Ticketers', value: ticketers, color: 'text-blue-600' },
+          { label: 'Cashiers', value: cashiers, color: 'text-emerald-600' },
           {
-            label: 'Dispatchers', value: dispatchers, color: 'text-orange-600',
+            label: 'Dispatch', value: dispatchers, color: 'text-orange-600',
             sub: suspended > 0 ? `${suspended} suspended` : undefined
           },
         ].map(s => (
@@ -347,11 +328,6 @@ export default function Staff() {
                     {form.status}
                   </span>
                 )}
-                {form.role === 'Ticketer' && form.office && (
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-50 border border-sky-200 text-sky-700">
-                    {form.office}
-                  </span>
-                )}
                 {isSuperAdmin && form.company && (
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 border border-purple-200 text-purple-700">
                     {companies.find((c: any) => c._id === form.company)?.name
@@ -363,8 +339,8 @@ export default function Staff() {
             </div>
           </div>
 
-          {/* company — superadmin only, create only */}
-          {isSuperAdmin && !editing && (
+          {/* company — superadmin can set on create and edit */}
+          {isSuperAdmin && (
             <div className="flex flex-col gap-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Company *</p>
               <select
@@ -378,7 +354,7 @@ export default function Staff() {
                   <option key={c._id} value={c._id}>{c.name ?? c.companyName}</option>
                 ))}
               </select>
-              {!form.company && (
+              {!form.company && !editing && (
                 <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
                   You must select a company before adding staff.
                 </p>
@@ -402,29 +378,36 @@ export default function Staff() {
               </div>
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-gray-600">Phone *</label>
+                <div className="flex rounded-xl border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-gray-900 focus-within:border-transparent transition-all">
+                  <div className="flex items-center gap-1 px-3 py-2.5 bg-gray-50 border-r border-gray-200 select-none shrink-0">
+                    <span className="text-sm">🇪🇹</span>
+                    <span className="text-sm font-medium text-gray-700">+251</span>
+                  </div>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={e => set('phone', stripLocalPhoneDigits(e.target.value))}
+                    placeholder="912 345 678"
+                    maxLength={9}
+                    required
+                    className="flex-1 min-w-0 px-3 py-2.5 text-sm outline-none bg-white text-gray-900 placeholder-gray-400"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 col-span-2 sm:col-span-1">
+                <label className="text-xs font-semibold text-gray-600">Email *</label>
                 <input
-                  value={form.phone}
-                  onChange={e => set('phone', e.target.value)}
-                  placeholder="e.g. 0911234567"
+                  type="email"
+                  value={form.email}
+                  onChange={e => set('email', e.target.value)}
+                  placeholder="e.g. tigist@company.com"
                   required
+                  autoComplete="off"
                   className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                 />
               </div>
-            </div>
-            {!editing && (
-              <>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold text-gray-600">Email *</label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={e => set('email', e.target.value)}
-                    placeholder="e.g. tigist@company.com"
-                    required
-                    className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
+              {!editing && (
+                <div className="flex flex-col gap-1.5 col-span-2 sm:col-span-1">
                   <label className="text-xs font-semibold text-gray-600">Password *</label>
                   <input
                     type="password"
@@ -432,17 +415,33 @@ export default function Staff() {
                     onChange={e => set('password', e.target.value)}
                     placeholder="Min. 8 characters"
                     required
+                    minLength={8}
+                    autoComplete="new-password"
                     className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                   />
                 </div>
-              </>
+              )}
+            </div>
+            {editing && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-gray-600">New Password</label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={e => set('password', e.target.value)}
+                  placeholder="Leave blank to keep current password"
+                  minLength={8}
+                  autoComplete="new-password"
+                  className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+                />
+              </div>
             )}
           </div>
 
           {/* role selection */}
           <div className="flex flex-col gap-3">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Role *</p>
-            <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${availableRoles.length}, 1fr)` }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {availableRoles.map(r => (
                 <button
                   key={r}
@@ -459,67 +458,16 @@ export default function Staff() {
               ))}
             </div>
 
-            {/* Role description hint */}
-            {form.role === 'Ticketer' && (
-              <p className="text-[11px] text-blue-600 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                Ticketers sell and manage tickets at a specific office location.
+            {ROLE_HINTS[form.role] && (
+              <p className={`text-[11px] rounded-lg px-3 py-2 border ${
+                form.role === 'Admin' ? 'text-purple-600 bg-purple-50 border-purple-100'
+                  : form.role === 'Cashier' ? 'text-emerald-700 bg-emerald-50 border-emerald-100'
+                    : form.role === 'Dispatcher' ? 'text-orange-600 bg-orange-50 border-orange-100'
+                      : 'text-blue-600 bg-blue-50 border-blue-100'
+              }`}>
+                {ROLE_HINTS[form.role]}
               </p>
             )}
-            {form.role === 'Dispatcher' && (
-              <p className="text-[11px] text-orange-600 bg-orange-50 border border-orange-100 rounded-lg px-3 py-2">
-                Dispatchers manage daily trip departures and boarding operations.
-              </p>
-            )}
-            {form.role === 'Admin' && (
-              <p className="text-[11px] text-purple-600 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
-                Admins have full access to manage company resources.
-              </p>
-            )}
-          </div>
-
-          {/* Ticket Office — only shown for Ticketers */}
-          {form.role === 'Ticketer' && (
-            <div className="flex flex-col gap-3">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Ticket Office</p>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold text-gray-600">Office / Branch Name *</label>
-                <div className="relative">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8}
-                    className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                  <input
-                    value={form.office}
-                    onChange={e => set('office', e.target.value)}
-                    placeholder="e.g. Addis Ababa — Meskel Square"
-                    required
-                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
-                  />
-                </div>
-                <p className="text-[10px] text-gray-400">The physical ticket office this staff member is assigned to.</p>
-              </div>
-            </div>
-          )}
-
-          {/* Department */}
-          <div className="flex flex-col gap-3">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Department</p>
-            <div className="grid grid-cols-2 gap-2">
-              {DEPARTMENTS.map(d => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => set('department', d)}
-                  className={`py-2 rounded-xl border-2 text-xs font-semibold transition-all ${form.department === d
-                    ? 'border-gray-900 bg-gray-900 text-white'
-                    : 'border-gray-100 bg-white text-gray-500 hover:border-gray-300'
-                    }`}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Status */}

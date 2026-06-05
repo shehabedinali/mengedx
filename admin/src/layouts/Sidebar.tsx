@@ -1,12 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
+import { isDispatcherRole, isCashierRole } from '@/constants/roles';
 
 // ─── Icon helpers ────────────────────────────────────────────────────────────
 const icons = {
   dashboard: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>,
   companies: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
-  managers: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><circle cx="9" cy="8" r="3" /><path d="M2 20c0-3 3-5.5 7-5.5s7 2.5 7 5.5" /><path d="M16 3.13a4 4 0 0 1 0 7.75M22 20c0-3-2.5-5.5-6-5.5" /></svg>,
   buses: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M2 10h20M7 18v2M17 18v2" /><circle cx="7" cy="15" r="1" fill="currentColor" /><circle cx="17" cy="15" r="1" fill="currentColor" /></svg>,
   drivers: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" /></svg>,
   routes: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-4 h-4"><path d="M3 12h18M3 6l4 6-4 6M21 6l-4 6 4 6" /></svg>,
@@ -23,7 +23,6 @@ const icons = {
 const superAdminNav = [
   { to: '/', label: 'Dashboard', icon: icons.dashboard },
   { to: '/companies', label: 'Companies', icon: icons.companies },
-  { to: '/managers', label: 'Users', icon: icons.managers },
   { to: '/buses', label: 'Buses', icon: icons.buses },
   { to: '/drivers', label: 'Drivers', icon: icons.drivers },
   { to: '/routes', label: 'Routes', icon: icons.routes },
@@ -58,7 +57,14 @@ const managerNav = [
   { to: '/staff', label: 'Staff', icon: icons.staff },
 ];
 
-// Dispatcher: read-only operational view — no CRUD
+// Cashier: ticket selling flow
+const cashierNav = [
+  { to: '/cashier', label: 'Dashboard', icon: icons.dashboard },
+  { to: '/cashier/trips', label: 'Trips', icon: icons.trips },
+  { to: '/cashier/bookings', label: 'Bookings', icon: icons.bookings },
+];
+
+// Dispatcher: operational view + ticker office cashier assignment
 const dispatcherNav = [
   { to: '/', label: 'Dashboard', icon: icons.dashboard },
   { to: '/routes', label: 'Routes', icon: icons.routes },
@@ -66,6 +72,7 @@ const dispatcherNav = [
   { to: '/buses', label: 'Buses', icon: icons.buses },
   { to: '/drivers', label: 'Drivers', icon: icons.drivers },
   { to: '/dispatch', label: 'Daily Dispatch', icon: icons.dispatch },
+  { to: '/ticker-offices', label: 'Ticker Offices', icon: icons.tickerOffice },
 ];
 
 // Role badge colours
@@ -74,7 +81,7 @@ const ROLE_BADGE: Record<string, string> = {
   admin: 'bg-purple-100 text-purple-700',
   manager: 'bg-indigo-100 text-indigo-700',
   dispatcher: 'bg-orange-100 text-orange-700',
-  ticketer: 'bg-blue-100 text-blue-700',
+  cashier: 'bg-emerald-100 text-emerald-700',
 };
 
 export default function Sidebar() {
@@ -85,17 +92,20 @@ export default function Sidebar() {
   const role = user?.role?.toLowerCase() ?? '';
   const isSuperAdmin = role === 'superadmin';
   const isAdmin = role === 'admin';
-  const isDispatcher = role === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user?.role);
+  const isCashier = isCashierRole(user?.role);
 
   const navItems = isSuperAdmin ? superAdminNav
     : isAdmin ? adminNav
       : isDispatcher ? dispatcherNav
-        : managerNav;
+        : isCashier ? cashierNav
+          : managerNav;
 
   const portalLabel = isSuperAdmin ? 'Super Admin'
     : isAdmin ? 'Admin Portal'
       : isDispatcher ? 'Dispatcher'
-        : 'Manager Portal';
+        : isCashier ? 'Cashier'
+          : 'Manager Portal';
 
   const handleLogout = () => { dispatch(logout()); navigate('/login'); };
 

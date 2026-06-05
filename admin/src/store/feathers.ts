@@ -1,4 +1,4 @@
-import { feathers } from '@feathersjs/feathers'
+import feathers from '@feathersjs/feathers'
 import socketio from '@feathersjs/socketio-client'
 import authentication from '@feathersjs/authentication-client'
 // socket.io-client v2 ships its own types via the package itself

@@ -8,6 +8,7 @@ import { toast } from '@/store/slices/toastSlice';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 import Card from '@/components/Card';
+import { isDispatcherRole } from '@/constants/roles';
 
 const empty = {
   name: '', phone: '', nationalId: '', licenseNumber: '', licenseExpiry: '', status: 'Active',
@@ -114,7 +115,7 @@ export default function Drivers() {
 
   const user = useAppSelector(s => s.auth.user);
   const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
-  const isDispatcher = user?.role?.toLowerCase() === 'dispatcher';
+  const isDispatcher = isDispatcherRole(user?.role);
   const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
 
@@ -142,7 +143,8 @@ export default function Drivers() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editing) {
-      const result = await dispatch(updateDriver({ id: editing._id, data: form }));
+      const { company: _company, ...data } = form;
+      const result = await dispatch(updateDriver({ id: editing._id, data }));
       if (updateDriver.fulfilled.match(result)) dispatch(toast.success('Driver updated successfully!'));
       else dispatch(toast.error(result.payload as string || 'Failed to update driver'));
     } else {
@@ -294,7 +296,7 @@ export default function Drivers() {
             </div>
           </div>
 
-          {/* company selection */}
+          {/* company — selectable on create only */}
           {isSuperAdmin && !editing && (
             <div className="flex flex-col gap-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Company</p>
@@ -306,6 +308,14 @@ export default function Drivers() {
                   {companies.map((c: any) => <option key={c._id} value={c._id}>{c.name}</option>)}
                 </select>
               </div>
+            </div>
+          )}
+          {isSuperAdmin && editing && form.company && (
+            <div className="flex flex-col gap-1">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Company</p>
+              <p className="text-sm text-gray-700 px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
+                {companies.find((c: any) => c._id === form.company)?.name ?? '—'}
+              </p>
             </div>
           )}
 

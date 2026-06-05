@@ -13,6 +13,7 @@ import { toast } from '@/store/slices/toastSlice';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 import Card from '@/components/Card';
+import { isDispatcherRole } from '@/constants/roles';
 
 const STATUSES = ['ACTIVE', 'INACTIVE'] as const;
 
@@ -31,11 +32,13 @@ function OfficeCard({
     onEdit,
     onDelete,
     onClick,
+    canManage = true,
 }: {
     office: any;
     onEdit: () => void;
     onDelete: () => void;
     onClick: () => void;
+    canManage?: boolean;
 }) {
     const isActive = office.status === 'ACTIVE';
 
@@ -118,20 +121,26 @@ function OfficeCard({
             )}
 
             {/* actions */}
-            <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
-                <button
-                    onClick={e => { e.stopPropagation(); onEdit(); }}
-                    className="text-xs font-semibold text-gray-500 hover:text-gray-900 px-2.5 py-1 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                    Edit
-                </button>
-                <button
-                    onClick={e => { e.stopPropagation(); onDelete(); }}
-                    className="text-xs font-semibold text-red-400 hover:text-red-600 px-2.5 py-1 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                    Delete
-                </button>
-            </div>
+            {canManage ? (
+                <div className="flex items-center justify-end gap-2 pt-1 border-t border-gray-100">
+                    <button
+                        onClick={e => { e.stopPropagation(); onEdit(); }}
+                        className="text-xs font-semibold text-gray-500 hover:text-gray-900 px-2.5 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                        Edit
+                    </button>
+                    <button
+                        onClick={e => { e.stopPropagation(); onDelete(); }}
+                        className="text-xs font-semibold text-red-400 hover:text-red-600 px-2.5 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                    >
+                        Delete
+                    </button>
+                </div>
+            ) : (
+                <div className="flex items-center justify-end pt-1 border-t border-gray-100">
+                    <span className="text-xs text-gray-400">Open to assign cashiers</span>
+                </div>
+            )}
         </div>
     );
 }
@@ -146,6 +155,8 @@ export default function TickerOffices() {
 
     const user = useAppSelector(s => s.auth.user);
     const isSuperAdmin = user?.role?.toLowerCase() === 'superadmin';
+    const isDispatcher = isDispatcherRole(user?.role);
+    const canManageOffices = !isDispatcher;
     const companyFilter = isSuperAdmin ? (selectedCompanyId ?? undefined) : user?.company;
 
     const [open, setOpen] = useState(false);
@@ -200,7 +211,8 @@ export default function TickerOffices() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (editing) {
-            const result = await dispatch(updateTickerOffice({ id: editing._id, data: form }));
+            const { company: _company, ...data } = form;
+            const result = await dispatch(updateTickerOffice({ id: editing._id, data }));
             if (updateTickerOffice.fulfilled.match(result)) {
                 dispatch(toast.success('Ticker office updated!'));
             } else {
@@ -260,7 +272,7 @@ export default function TickerOffices() {
                             ))}
                         </select>
                     )}
-                    <Button onClick={openAdd}>+ Add Office</Button>
+                    {canManageOffices && <Button onClick={openAdd}>+ Add Office</Button>}
                 </div>
             </div>
 
@@ -334,6 +346,7 @@ export default function TickerOffices() {
                                 onClick={() => navigate(`/ticker-offices/${o._id}`)}
                                 onEdit={() => openEdit(o)}
                                 onDelete={() => setConfirmId(o._id)}
+                                canManage={canManageOffices}
                             />
                         ))}
                     </div>
@@ -402,8 +415,8 @@ export default function TickerOffices() {
                         </span>
                     </div>
 
-                    {/* company — superadmin only */}
-                    {isSuperAdmin && (
+                    {/* company — superadmin only on create */}
+                    {isSuperAdmin && !editing && (
                         <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-semibold text-gray-600">Company *</label>
                             <select
@@ -417,6 +430,14 @@ export default function TickerOffices() {
                                     <option key={c._id} value={c._id}>{c.name}</option>
                                 ))}
                             </select>
+                        </div>
+                    )}
+                    {isSuperAdmin && editing && form.company && (
+                        <div className="flex flex-col gap-1">
+                            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Company</p>
+                            <p className="text-sm text-gray-700 px-3 py-2.5 bg-gray-50 border border-gray-100 rounded-xl">
+                                {companies.find((c: any) => c._id === form.company)?.name ?? '—'}
+                            </p>
                         </div>
                     )}
 
